@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Shaped like the output of gotestsum junitfile. -->
+<testsuites tests="2" failures="0" errors="0" time="0.120000">
+	<testsuite tests="2" failures="0" time="0.120000" name="example.com/app/sync" timestamp="2026-10-01T08:00:00Z">
+		<properties>
+			<property name="go.version" value="go1.25.0 linux/amd64"></property>
+		</properties>
+		<testcase classname="example.com/app/sync" name="TestQueue" time="0.000000"></testcase>
+		<testcase classname="example.com/app/sync" name="TestQueue/SYNC-1.1_offline_edits_survive_restart" time="0.000000"></testcase>
+	</testsuite>
+</testsuites>

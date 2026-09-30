@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Shaped like jest-junit output. -->
+<testsuites name="jest tests" tests="3" failures="0" errors="0" time="0.412">
+  <testsuite name="split" errors="0" failures="0" skipped="1" timestamp="2026-10-01T08:00:00" time="0.301" tests="3">
+    <testcase classname="split [LEDGER-1.1] rejects percentages that do not sum to 100" name="split [LEDGER-1.1] rejects percentages that do not sum to 100" time="0.004">
+    </testcase>
+    <testcase classname="split formats the total" name="split formats the total" time="0.001">
+    </testcase>
+    <testcase classname="split [LEDGER-3.1] rounds each share" name="split [LEDGER-3.1] rounds each share" time="0">
+      <skipped/>
+    </testcase>
+  </testsuite>
+</testsuites>
