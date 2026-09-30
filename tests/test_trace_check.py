@@ -110,5 +110,21 @@ class StarterConfig(unittest.TestCase):
         self.assertLessEqual(contexts, job_names)
 
 
+    def test_skills_follow_agent_skills_format_and_match_the_agents_index(self):
+        skills = sorted((ROOT / "starter/skills").glob("*/SKILL.md"))
+        self.assertTrue(skills)
+        for path in skills:
+            text = path.read_text(encoding="utf-8")
+            front = re.match(r"---\nname: (.+)\ndescription: (.+)\n---\n", text)
+            self.assertIsNotNone(front, f"{path}: frontmatter must start with name and description")
+            name, description = front.groups()
+            self.assertEqual(name, path.parent.name, f"{path}: name must match its directory")
+            self.assertRegex(name, r"^[a-z0-9]+(-[a-z0-9]+)*$")
+            self.assertLessEqual(len(name), 64)
+            self.assertLessEqual(len(description), 1024)
+        agents = (ROOT / "starter/AGENTS.md").read_text(encoding="utf-8")
+        indexed = set(re.findall(r"`skills/([a-z0-9-]+)/SKILL\.md`", agents))
+        self.assertEqual(indexed, {path.parent.name for path in skills})
+
 if __name__ == "__main__":
     unittest.main()
