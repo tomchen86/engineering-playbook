@@ -18,7 +18,7 @@
 3. 選技術：填好 `scripts/check.sh`（測試結果輸出成 JUnit XML 到 `reports/junit/`），並在 `.github/workflows/ci.yml` 加上工具鏈的 setup 步驟。
 4. 填好 `README.md` 和 `AGENTS.md` 裡的專案說明和指令。
 5. 建立 GitHub repo 並 push，套用 ruleset，做完兩個驗證（第 3 章）。
-6. 建立 GitHub Project（Roadmap 模板），把實作者的 bot 帳號加成 collaborator（第 1、3 章）。
+6. 寫好 `docs/roadmap.md` 的目標和 Not doing；把實作者的 bot 帳號加成 collaborator。需要時再建 GitHub Project（第 1、3 章）。
 7. 第一個功能開始時，照第 1 章的流程寫第一份 spec。
 
 也可以把 `starter/` 推成一個獨立的 repo，在 GitHub 上設成 template repository，之後用 `gh repo create my-app --template <owner>/<repo> --clone` 開新專案。starter 的 CI 在 template repository 本身不會執行。

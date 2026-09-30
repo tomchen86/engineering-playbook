@@ -17,5 +17,6 @@ python3 scripts/trace_check.py   # requirement trace, after check.sh
 | What the system does | `docs/specs/` |
 | How the parts fit together | `docs/architecture.md` |
 | Why it is built this way | `docs/adr/` |
+| Where it is going | `docs/roadmap.md` |
 | Plans, progress, discussion | GitHub Issues and the Project board |
 | Rules for AI agents | `AGENTS.md` |
