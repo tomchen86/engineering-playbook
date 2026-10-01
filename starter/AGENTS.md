@@ -49,6 +49,6 @@ Once per issue that changes behavior. Refactors, typos, docs, and dependency bum
 ## Implementing
 
 - Make the failing tests pass. Do not edit the specs or the tests you were given; if a test looks wrong, stop and explain why.
-- Behavior the spec does not cover: if a user or another component would notice the choice (for example, who gets the remainder of an uneven split), stop and ask the spec author in a PR comment, and meanwhile work on the parts that do not depend on the answer. Decide internal details yourself.
+- Behavior the spec does not cover: if a user or another component would notice the choice (for example, who gets the remainder of an uneven split), stop and ask the spec author in a PR comment (`gh pr comment <N> --body "<question>"`), and meanwhile work on the parts that do not depend on the answer. Decide internal details yourself.
 - When the tests pass: fill the PR's What changed and Verification sections, then mark it ready for review with `gh pr ready <N>`.
 - Never merge, and never push to the default branch.

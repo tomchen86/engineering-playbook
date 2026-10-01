@@ -18,7 +18,7 @@ Format, IDs, EARS sentences, and how tests cite requirements: `docs/specs/README
 3. Write failing tests that cite the IDs. Cover the edge cases where implementers would otherwise invent rules: uneven division, empty, zero, limits, duplicates.
 4. Architecture-level choice: write an ADR.
 5. Run `bash scripts/check.sh`, then `python3 scripts/trace_check.py`. The new IDs show up as untested until the implementation makes their tests pass; anything else it reports is a mistake to fix now.
-6. Commit, and open a draft PR with an `enhancement` or `bug` label. Write its body from `.github/pull_request_template.md` (`gh` skips the template when you pass `--body`): fill `Closes #<N>` and Requirements, including `Spec commit: <sha>`, and leave the implementer's sections.
+6. Commit. Write the PR body into a file from `.github/pull_request_template.md` (`gh` skips the template when given a body): fill `Closes #<N>` and Requirements, including `Spec commit: <sha>`, and leave the implementer's sections. Then open the draft PR: `gh pr create --draft --title "<title>" --body-file <file> --label enhancement` (or `--label bug`).
 7. Hand off to the implementer: the branch, the spec diff, and the failing tests. Not the issue text.
 
 ## Answering the implementer
