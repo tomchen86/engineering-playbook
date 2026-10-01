@@ -7,7 +7,7 @@ description: Review a pull request before merge, and merge only the reviewed com
 
 ## Checklist
 
-1. CI is green: `gh pr checks <N>`.
+1. The PR is marked ready (not a draft), and CI is green: `gh pr checks <N>`.
 2. The description has `Closes #<N>` or `No issue: <reason>`, and every template section is filled.
 3. The tests are unchanged since the spec commit (`Spec commit:` in the PR description): `git diff <spec-commit>..HEAD -- <test paths>` prints nothing.
 4. Spec, code, and tests say the same thing, and every test that cites a requirement actually checks it.

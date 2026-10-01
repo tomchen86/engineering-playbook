@@ -30,20 +30,22 @@
 
 Three roles for each task: spec author, implementer, reviewer. Play exactly one role per session, and hand off only through the repo: specs, tests, and the PR. If you wrote the spec or the tests for a task in this session, do not implement that task here.
 
-## Skills
+## Workflow
 
-Step-by-step procedures live in `skills/`. Before starting one of these, read its skill:
+Step-by-step procedures live in `skills/`. Read the skill before starting its step.
 
-| When | Skill |
-|---|---|
-| Recording a planning discussion, or changing the plan for a phase not started | `skills/record-plan/SKILL.md` |
-| A roadmap phase moves to Now | `skills/start-phase/SKILL.md` |
-| Writing the spec and failing tests for an issue | `skills/write-spec/SKILL.md` |
-| Reviewing or merging a pull request | `skills/review-pr/SKILL.md` |
+Once per phase:
+1. A planning discussion ends, or a phase not started needs a new plan: `skills/record-plan/SKILL.md`.
+2. A phase moves to Now: `skills/start-phase/SKILL.md`.
+
+Once per issue that changes behavior. Refactors, typos, docs, and dependency bumps skip straight to a PR.
+1. Spec author: `skills/write-spec/SKILL.md`. Spec and failing tests first, then a draft PR. The PR exists before any implementation.
+2. Implementer: Implementing, below. Push to the same branch until the tests pass, then mark the PR ready.
+3. Reviewer: `skills/review-pr/SKILL.md`. Review, report, and merge only when the owner says so.
 
 ## Implementing
 
 - Make the failing tests pass. Do not edit the specs or the tests you were given; if a test looks wrong, stop and explain why.
 - Behavior the spec does not cover: choose the smallest reasonable behavior and list it under "Rules discovered during implementation" in the PR. Do not add it to the spec.
-- When done, also fill the PR's What changed and Verification sections.
+- When the tests pass: fill the PR's What changed and Verification sections, then mark it ready for review with `gh pr ready <N>`.
 - Never merge, and never push to the default branch.

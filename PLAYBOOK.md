@@ -146,21 +146,36 @@ Issue 描述「這次要做什麼」，做完就關閉。spec 描述「系統現
 
 0. **想法**：有用 GitHub Project 的話，建一個 draft item（只存在 Project 裡、還不是 Issue 的項目）；沒有的話，好幾個階段的大方向，討論後寫成 proposal（見下方）；小想法等決定要做再開 Issue。
 1. **決定要做，開 Issue**（用 Issue Form）：目標、驗收條件（用 EARS 句子寫，之後原樣搬進 spec）、影響哪些 capability、不做什麼。大功能拆成 sub-issues，每個 sub-issue 各走一次第 2～6 步。有用 Project 的話，你把它排進 Ready，才算准許開工。
-2. **寫 spec 和紅燈測試**（規格作者）：
+2. **寫 spec 和紅燈測試**（規格作者，`skills/write-spec`）：
    - `gh issue develop <N> --checkout`：建立連到 Issue 的分支，分支會出現在 Issue 的 Development 欄位。
    - 改 spec：新增、改版或刪除 requirement。
    - 寫引用編號的測試，這時測試是紅的。先把邊界情況寫進去：除不盡、空值、零、上限、重複。衍生規則大多從這些地方長出來（第 2 章）。
    - 牽涉架構層級的選擇時，寫一篇 ADR。
-   - 開 draft PR：描述寫 `Closes #N`，加上 `enhancement` 或 `bug` label。
+   - 開 draft PR：描述寫 `Closes #N`，加上 `enhancement` 或 `bug` label。PR 在這時候就開，裡面只有 spec 和紅燈測試，還沒有任何實作。
    - **你的檢查點**：看 spec 的 diff，問自己「這就是我要的行為嗎？」這是整個流程裡改方向最便宜的時候，實作一行都還沒寫。
-3. **實作**（實作者）：拿到的是分支、spec 的 diff 和紅燈測試，不是 Issue 的文字。不改 spec 和既有的測試；spec 沒講到、實作時卻必須決定的事，列在 PR 描述的「實作中發現的規則」。
-4. **Review**（審查者）：照 `skills/review-pr` 做，第 2 章解釋每一項的理由。做完回報你：改了什麼、有什麼風險、看過的 commit SHA。
+3. **實作**（實作者，照 `AGENTS.md` 的 Implementing）：拿到的是分支、spec 的 diff 和紅燈測試，不是 Issue 的文字。commit 推到同一個分支，PR 會跟著更新。不改 spec 和既有的測試；spec 沒講到、實作時卻必須決定的事，列在 PR 描述的「實作中發現的規則」。測試全綠後，填好 PR 其餘的段落，執行 `gh pr ready <N>` 把 draft 改成 ready。
+4. **Review**（審查者，`skills/review-pr`）：PR 改成 ready 之後才開始，第 2 章解釋清單每一項的理由。做完回報你：改了什麼、有什麼風險、看過的 commit SHA。
 5. **Merge**：你說可以，審查者執行 `gh pr merge <N> --squash --match-head-commit <SHA>`。
 6. **自動收尾**：因為有 `Closes #N`，Issue 自動關閉；有用 Project 的話，上面的項目會自動移到 Done。
 7. **手動驗收**：有 `(manual)` requirement 時，照追溯檢查列出的清單，在實機上驗收。沒通過就開新的 Issue。
 8. **發版**：GitHub Releases 會依 PR 的 label 分類，自動產生 release notes，你再改寫成使用者看得懂的摘要。
 
-不同類型的改動，差別只在第 2 步：
+**什麼時候用哪個 skill**：四個 skill 分兩組。同樣的時間軸也寫在 starter 的 `AGENTS.md`，因為 agent 讀不到這份 playbook。
+
+```text
+每個階段一次
+  規劃討論結束 ──→ record-plan：寫 proposal，更新 roadmap
+  階段要開始   ──→ start-phase：照 proposal 建 milestone 和 parent issues
+
+每個會改變行為的 Issue 一次
+  ① 開始處理     ──→ write-spec（規格作者）：spec + 紅燈測試 → 開 draft PR
+  ② 實作         ──→ 沒有 skill，照 AGENTS.md：推到同一個 PR，全綠後 gh pr ready
+  ③ PR 改成 ready ──→ review-pr（審查者）：檢查 → 回報你 → 你說可以才 merge
+```
+
+PR 在實作之前就開，有三個理由：spec 的 diff 就是派工單，也是你的檢查點，在 PR 裡看最清楚、可以直接留言；PR 描述記下 Spec commit，review 時才能確認實作者沒改過測試；CI 從一開始就跑，draft 階段測試是紅的，全綠就代表做完。draft 狀態的 PR，GitHub 不允許 merge，所以不會誤合半成品。
+
+不同類型的改動，差別只在第 2 步。表上 spec 和測試都不動的（重構），就跳過 write-spec，直接開 PR：
 
 | 改動 | 第 2 步要做的事 |
 |---|---|
