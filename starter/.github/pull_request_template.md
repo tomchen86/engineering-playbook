@@ -11,7 +11,7 @@ Closes #
 
 ## Rules discovered during implementation
 
-<!-- Implementer: behavior the spec did not cover that the implementation had to decide. Write "None" if there were none. -->
+<!-- Implementer: behavior the spec did not cover that a user or another component would notice. Ask the spec author before implementing it, then list each one here with the spec commit that answered it. Internal details do not belong here. Write "None" if there were none. -->
 
 ## Verification
 

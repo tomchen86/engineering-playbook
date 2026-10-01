@@ -21,6 +21,10 @@ Format, IDs, EARS sentences, and how tests cite requirements: `docs/specs/README
 6. Commit, and open a draft PR with an `enhancement` or `bug` label. Write its body from `.github/pull_request_template.md` (`gh` skips the template when you pass `--body`): fill `Closes #<N>` and Requirements, including `Spec commit: <sha>`, and leave the implementer's sections.
 7. Hand off to the implementer: the branch, the spec diff, and the failing tests. Not the issue text.
 
+## Answering the implementer
+
+When the implementer asks about behavior the spec does not cover: decide it with the owner, add the requirement and a failing test on the same branch, and change `Spec commit:` in the PR description to this new commit. The review compares the tests against the latest spec commit.
+
 ## Never
 
 - Put behavior this issue does not build into the specs.

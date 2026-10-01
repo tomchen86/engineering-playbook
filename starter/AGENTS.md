@@ -28,7 +28,7 @@
 
 ## Roles
 
-Three roles for each task: spec author, implementer, reviewer. Play exactly one role per session, and hand off only through the repo: specs, tests, and the PR. If you wrote the spec or the tests for a task in this session, do not implement that task here.
+Three roles for each issue that changes behavior: spec author, implementer, reviewer. Play exactly one role per session, and hand off only through the repo: specs, tests, and the PR. If you wrote the spec or the tests for an issue in this session, do not implement it here. Changes that do not change behavior (typos, docs, refactors, dependency bumps) may be done in one session: make the change, open the PR, let CI run. The owner decides whether it also needs a reviewer session.
 
 ## Workflow
 
@@ -46,6 +46,6 @@ Once per issue that changes behavior. Refactors, typos, docs, and dependency bum
 ## Implementing
 
 - Make the failing tests pass. Do not edit the specs or the tests you were given; if a test looks wrong, stop and explain why.
-- Behavior the spec does not cover: choose the smallest reasonable behavior and list it under "Rules discovered during implementation" in the PR. Do not add it to the spec.
+- Behavior the spec does not cover: if a user or another component would notice the choice (for example, who gets the remainder of an uneven split), stop and ask the spec author in a PR comment, and meanwhile work on the parts that do not depend on the answer. Decide internal details yourself.
 - When the tests pass: fill the PR's What changed and Verification sections, then mark it ready for review with `gh pr ready <N>`.
 - Never merge, and never push to the default branch.
