@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # One-time GitHub setup for a new repo: merge settings, labels, rulesets.
-# Safe to re-run. Run from a clone after the first push, logged in to gh as the owner.
+# Safe to re-run: it also brings existing rulesets back in line with the JSON. Run from a clone after the first push, logged in to gh as the owner.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -12,13 +12,17 @@ gh label create enhancement --color a2eeef --description "New feature or request
 gh label create bug --color d73a4a --description "Something isn't working" --force
 gh label create skip-changelog --color ededed --description "Leave out of release notes" --force
 
-# Rulesets from .github/rulesets/, skipping the ones that already exist.
-existing=$(gh api "repos/{owner}/{repo}/rulesets" --jq '.[].name')
+# Rulesets from .github/rulesets/: create missing ones, update existing ones to match the JSON.
 for f in .github/rulesets/*.json; do
   name=$(python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["name"])' "$f")
-  if grep -qxF "$name" <<<"$existing"; then echo "ruleset already exists: $name"; continue; fi
-  gh api -X POST "repos/{owner}/{repo}/rulesets" --input "$f" >/dev/null
-  echo "ruleset created: $name"
+  id=$(gh api "repos/{owner}/{repo}/rulesets" --jq ".[] | select(.name == \"$name\") | .id")
+  if [ -n "$id" ]; then
+    gh api -X PUT "repos/{owner}/{repo}/rulesets/$id" --input "$f" >/dev/null
+    echo "ruleset updated: $name"
+  else
+    gh api -X POST "repos/{owner}/{repo}/rulesets" --input "$f" >/dev/null
+    echo "ruleset created: $name"
+  fi
 done
 
 # Secret scanning blocks pushes that contain keys. Free on public repos; report its state.

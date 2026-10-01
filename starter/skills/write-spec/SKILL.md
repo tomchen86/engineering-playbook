@@ -14,6 +14,7 @@ Format, IDs, EARS sentences, and how tests cite requirements: `docs/specs/README
    - New behavior: a new requirement with the next unused number.
    - Changed meaning: bump the version (`LEDGER-2.1` → `LEDGER-2.2`) and update every test that cites it.
    - Removed behavior: delete the requirement and every test that cites it.
+   - Bug (the code breaks a requirement that already exists): leave the spec as is, and add a failing test that cites the existing ID and reproduces the bug. If the bug shows the spec itself is wrong, it is changed meaning instead.
    - Name the component ("the API", "the mobile app"), not "the system".
 3. Write failing tests that cite the IDs. Cover the edge cases where implementers would otherwise invent rules: uneven division, empty, zero, limits, duplicates.
 4. Architecture-level choice: write an ADR.

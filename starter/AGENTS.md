@@ -19,7 +19,7 @@
 - Reasons: `docs/adr/`. Overview: `docs/architecture.md`.
 - Direction: `docs/roadmap.md`. The owner decides it; do not edit it unless asked.
 - Future plans: `docs/proposals/`. An accepted proposal is decided direction for work not started yet: not current behavior, not a work order.
-- Plans, progress, discussion: GitHub Issues and PRs, never files in this repo.
+- Work in progress (task plans, progress, discussion): GitHub Issues and PRs, never files in this repo.
 
 ## Rules
 
@@ -40,7 +40,7 @@ Step-by-step procedures live in `skills/`. Read the skill before starting its st
 
 Once per phase:
 1. A planning discussion ends, or a phase not started needs a new plan: `skills/record-plan/SKILL.md`.
-2. A phase moves to Now: `skills/start-phase/SKILL.md`.
+2. A phase moves to Now: `skills/start-phase/SKILL.md`. Its milestone is done: the same skill, Closing a phase.
 
 Once per issue that changes behavior. Refactors, typos, docs, and dependency bumps skip straight to a PR.
 1. Spec author: `skills/write-spec/SKILL.md`. Spec and failing tests first, then a draft PR. The owner approves the spec before any implementation starts.

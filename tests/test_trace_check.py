@@ -83,6 +83,16 @@ class TraceCheck(unittest.TestCase):
         self.assertIn("malformed:", out)
         self.assertIn("Percentage split sums to 100", out)
 
+    def test_near_miss_headings_are_malformed_not_skipped(self):
+        for heading in ("#### Requirement: LEDGER-4.1 Wrong level",
+                        "### Requirements: LEDGER-4.1 Plural",
+                        "### Requirement LEDGER-4.1 Missing colon",
+                        "### requirement: LEDGER-4.1 Lowercase"):
+            with self.subTest(heading=heading):
+                code, out = trace({"ledger/spec.md": LEDGER + heading + "\n", "sync/spec.md": SYNC})
+                self.assertEqual(code, 1, out)
+                self.assertIn("malformed:", out)
+
     def test_readme_examples_are_ignored(self):
         code, out = trace({"README.md": "### Requirement: LEDGER-9.1 Example only\n"}, reports=())
         self.assertEqual(code, 0, out)

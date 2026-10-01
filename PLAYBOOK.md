@@ -157,7 +157,7 @@ Issue 描述「這次要做什麼」，做完就關閉。spec 描述「系統現
    - **你的檢查點**：看 spec 的 diff，問自己「這就是我要的行為嗎？」這是整個流程裡改方向最便宜的時候，實作一行都還沒寫。
 3. **實作**（實作者，照 `AGENTS.md` 的 Implementing）：拿到的是分支、spec 的 diff 和紅燈測試，不是 Issue 的文字。commit 推到同一個分支，PR 會跟著更新。不改 spec 和既有的測試；spec 沒講到的行為分兩種：使用者或其他元件看得到的（例如除不盡的錢歸誰），先停下來在 PR 留言問規格作者，同時繼續做不受影響的部分；規格作者補進 spec 和紅燈測試，並把這個新的 commit 加進 PR 描述的 Spec commits，實作者再照著做。只影響內部的細節，實作者自己決定。測試全綠後，填好 PR 其餘的段落，執行 `gh pr ready <N>` 把 draft 改成 ready。
 4. **Review**（審查者，`skills/review-pr`）：PR 改成 ready 之後才開始，第 2 章解釋清單每一項的理由。做完回報你：改了什麼、有什麼風險、看過的 commit SHA。
-5. **Merge**：你說可以，審查者執行 `gh pr merge <N> --squash --match-head-commit <SHA>`。
+5. **Merge**：你說可以，審查者執行 `gh pr merge <N> --squash --admin --match-head-commit <SHA>`（`--admin` 為什麼必要、為什麼安全，見第 3 章）。
 6. **自動收尾**：因為有 `Closes #N`，Issue 自動關閉；有用 Project 的話，上面的項目會自動移到 Done。
 7. **手動驗收**：有 `(manual)` requirement 時，照追溯檢查列出的清單，在實機上驗收。沒通過就開新的 Issue。
 8. **發版**：GitHub Releases 會依 PR 的 label 分類，自動產生 release notes，你再改寫成使用者看得懂的摘要。
@@ -208,7 +208,7 @@ PR 在實作之前就開，有三個理由：spec 的 diff 就是派工單，也
 **Roadmap**：`docs/roadmap.md` 是方向的索引，格式是 Now / Next / Later / Not doing。每個階段只寫一行：為什麼放在這個位置，加上一個連結。
 - **Now 連到 milestone。** 一個階段一個 milestone，可以設截止日期、在裡面拖拉排序；大功能用 parent issue 加 sub-issues。milestone 的描述寫這個階段的**驗證問題**：做完之後要回答什麼，才決定要不要往下走。功能層的「怎樣算完成」，寫在各個 Issue 的驗收條件。
 - **Next 和 Later 連到 proposal 裡對應的段落。** 細節都在 proposal。
-- **階段做完，就把那一行刪掉。** 歷史留在 git 裡。
+- **階段做完，就把那一行刪掉。** 歷史留在 git 裡。收尾的步驟（回答驗證問題、關閉 milestone、改 roadmap）寫在 `skills/start-phase` 的 Closing a phase。
 
 它放在 repo 裡，因為 agent 需要讀它：寫 spec 和 review 時，常要考慮「之後會往哪走」。`roadmap.md` 不寫狀態、不寫完成日期、不列功能清單，只在方向改變時才改。一定要寫 Not doing，它能擋住 agent 順手多做的東西。roadmap 由你決定，agent 沒被要求就不改。
 
@@ -294,7 +294,7 @@ Next 和 Later 的階段不開 Issue，細節留在 proposal。某個階段移�
 | 3 追溯覆蓋率 | 只跑引用編號的測試並量覆蓋率，列出這個 PR 新增、卻從沒被執行到的分支 | 新增的 if、catch、預設值、提早 return | 同一行裡的選擇，例如四捨五入還是無條件捨去 |
 | 4 review | 讀 diff | 前三層漏掉的 | 審查者也沒看出來的 |
 
-第 3 層的做法依語言而定：用測試工具的「依名稱篩選」，只跑引用編號的測試（例如 jest 和 vitest 的 `-t '[A-Z]+-[0-9]+\.[0-9]+'`），同時打開覆蓋率，再跟 PR 的 diff 比對。要看 **function 和 branch** 覆蓋率；line 覆蓋率不準，因為模組只要被載入，裡面的程式就算「執行過」。
+第 3 層的做法依語言而定：用測試工具的「依名稱篩選」，只跑引用編號的測試（例如 jest 和 vitest 的 `-t '[A-Z]+-[0-9]+\.[0-9]+'`），同時打開覆蓋率，再跟 PR 的 diff 比對。要看 **function 和 branch** 覆蓋率：line 覆蓋率看不到同一行裡沒走到的分支，例如寫在一行裡的 `if`、`?:`、`??`。
 
 最有效的預防在更前面：第 1 章第 2 步寫紅燈測試時，先把邊界情況寫進去。實作者需要停下來問的次數越少，交接就越順。
 
@@ -334,9 +334,10 @@ Next 和 Later 的階段不開 Issue，細節留在 proposal。某個階段移�
 
 也可以到 Settings → Rules → Rulesets 用 Import 匯入。如果匯入時說 actor 無效，就在介面上手動建立 `main-merge`：繞過名單加入 Repository admin，模式選 For pull requests only。
 
-套用之後，一定要驗證兩件事：
+套用之後，一定要驗證三件事：
 - 用實作者的帳號對一個測試 PR 執行 `gh pr merge`，要被拒絕。
 - 對一個 `check` 失敗的 PR，你加上 `--admin` 去 merge，也要被拒絕。
+- 對一個 `check` 通過的 PR，照文件上的指令（含 `--admin`）merge，要成功。
 
 方案限制：public repo 用免費方案就有 ruleset；private repo 要 GitHub Pro 以上。沒有 ruleset 時，CI 紅燈擋不住 merge，只能靠自己不去按。
 
@@ -345,7 +346,7 @@ Next 和 Later 的階段不開 Issue，細節留在 proposal。某個階段移�
 - bot 的憑證只放進實作者的環境，例如讓 `GH_CONFIG_DIR` 指向一個只有 bot 的設定目錄。
 - 在同一個 OS 使用者底下，實作者讀得到你的 keychain。環境隔離只防得了「不小心」，防不了「被誘導」。要真正隔離，就讓實作者跑在容器裡。
 
-**3. Merge 時釘住 commit。** `gh pr merge <N> --squash --match-head-commit <SHA>`：如果 review 之後實作者又推了新的 commit，merge 會失敗，沒看過的東西就不會被合進去。
+**3. Merge 時釘住 commit。** `gh pr merge <N> --squash --admin --match-head-commit <SHA>`。`--admin` 是必要的：只有你能更新 main，靠的是 `main-merge` 的繞過名單，而 `gh` 不加 `--admin` 就不會使用這個繞過（[cli/cli#13388](https://github.com/cli/cli/issues/13388)，已在測試 repo 實測）。它也是安全的：`main-integrity` 沒有人能繞過，所以 `--admin` 跳不過失敗的 `check`（實測：紅燈的 PR 加 `--admin` 會被拒絕）。`--match-head-commit`：如果 review 之後實作者又推了新的 commit，merge 會失敗，沒看過的東西就不會被合進去。
 
 **4. 分支和 Issue。** 用 `gh issue develop <N> --checkout` 建分支，PR 描述寫 `Closes #N`。從這種分支開的 PR 會自動連到 Issue，但官方只保證 `Closes #N` 這類關鍵字會在 merge 時關閉 Issue，所以兩個都要。沒有 Issue 的小改動（錯字、文件、套件更新）不會經過 `write-spec`，所以 `AGENTS.md` 有一條一直有效的規則：每個改動都透過 PR 進 main，沒有 Issue 的 PR 寫 `No issue: <原因>`，讓 review 的人看到為什麼沒有。
 
@@ -356,7 +357,7 @@ Next 和 Later 的階段不開 Issue，細節留在 proposal。某個階段移�
 **模板**：[`.github/rulesets/`](starter/.github/rulesets/)、[`.github/workflows/ci.yml`](starter/.github/workflows/ci.yml)
 
 **什麼時候改**：
-- **讓 CI 成為唯一關卡時**（第 0 章開放了自動合併）：merge 當下沒有人看 diff，檢查本身就必須防竄改。拿掉 bot 的 `workflow` scope，讓它不能修改 CI 設定；CI 改成執行主線上那份 `trace_check.py`。另外要注意：有 write 權限的人推新的 commit，不會取消已經開啟的 auto-merge。
+- **讓 CI 成為唯一關卡時**（第 0 章開放了自動合併）：merge 當下沒有人看 diff，檢查本身就必須防竄改。拿掉 bot 的 `workflow` scope，讓它不能修改 CI 設定；CI 改成執行主線上那份 `check.sh` 和 `trace_check.py`，因為 bot 改得到 PR 裡的任何檔案，包括檢查腳本。auto-merge 能不能配合 `main-merge` 的繞過名單，要先在測試 repo 試過再開放。另外要注意：有 write 權限的人推新的 commit，不會取消已經開啟的 auto-merge。
 - **有第二個人類加入**：在 `main-integrity` 打開 1 人 approval 和 Require approval of the most recent reviewable push，並加上 CODEOWNERS。
 - **repo 在 organization 底下**：可以改用 branch protection 的 Restrict who can push，也可以給 bot 用 fine-grained token。
 - **public repo、依賴很多**：加上 Dependabot（至少要更新 GitHub Actions），actions 改用 commit SHA 固定版本。

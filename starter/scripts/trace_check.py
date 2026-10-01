@@ -16,7 +16,8 @@ Exits 1 on any of:
   unknown or stale  a passing test cites an ID no spec declares (a typo, or a
                     requirement whose version was bumped)
   duplicate         a requirement number declared more than once
-  malformed         a requirement heading without a valid ID
+  malformed         a heading that looks like a requirement (any level, any case,
+                    singular or plural) but is not exactly "### Requirement: <ID>"
 """
 import argparse
 import re
@@ -24,7 +25,8 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-HEADING = re.compile(r"^###\s+Requirement:")
+HEADING = re.compile(r"^#+\s*requirements?\b", re.IGNORECASE)  # anything that looks like one
+SECTION = re.compile(r"^##\s+Requirements\s*$")  # the section heading in the spec format
 REQUIREMENT = re.compile(r"^###\s+Requirement:\s+([A-Z][A-Z0-9]*-\d+\.\d+)(\s+\(manual\))?(?:\s|$)")
 CITATION = re.compile(r"(?<![A-Za-z0-9])([A-Z][A-Z0-9]*)[-_](\d+)[._](\d+)(?![0-9])")
 NOT_PASSED = {"skipped", "failure", "error"}
@@ -36,7 +38,7 @@ def read_specs(root):
         if path.name == "README.md":
             continue
         for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-            if not HEADING.match(line):
+            if not HEADING.match(line) or SECTION.match(line):
                 continue
             match = REQUIREMENT.match(line)
             if not match:

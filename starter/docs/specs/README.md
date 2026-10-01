@@ -82,4 +82,6 @@ A test covers a requirement when it passes and its reported name contains the ID
 | Go | `t.Run("LEDGER-2.1 remainder goes to payer", …)` |
 | JUnit (Java, Kotlin) | `void LEDGER_2_1_remainderGoesToPayer()` |
 
+Keep other ID-shaped strings (`TLS-1.2`, `USD-1.5`, `HTTP_2_0`) out of test names: the trace check reads them as citations and reports them as unknown.
+
 Cite only behavior that a user or another component can observe; tests of internal details need no ID. When two components implement the same rule, both tests cite the same ID.

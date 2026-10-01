@@ -23,6 +23,14 @@ description: Move a roadmap phase into Now by turning its proposal section into 
    - Order: `gh issue edit <N> --add-blocked-by <M>` when N cannot start before M is done.
 5. Move the phase's roadmap line to Now and make it link the milestone.
 
+## Closing a phase
+
+When every issue in the phase's milestone is closed:
+
+1. Answer the milestone's validation question with the owner, and write the answer in the PR description of step 3.
+2. Close the milestone: `gh api -X PATCH repos/{owner}/{repo}/milestones/<number> -f state=closed`.
+3. Open a PR that removes the phase's line from `docs/roadmap.md`. If the answer changes the plan, update the plan as well (record-plan).
+
 ## Never
 
 - Create issues for phases that are not moving to Now.
