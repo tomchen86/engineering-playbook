@@ -9,7 +9,7 @@ Format, IDs, EARS sentences, and how tests cite requirements: `docs/specs/README
 
 ## Steps
 
-1. `gh issue develop <N> --checkout`.
+1. If `gh issue view <N> --json blockedBy` lists an open issue, stop and tell the owner. Otherwise: `gh issue develop <N> --checkout`.
 2. Edit every capability the issue touches (`docs/specs/<capability>/spec.md`):
    - New behavior: a new requirement with the next unused number.
    - Changed meaning: bump the version (`LEDGER-2.1` → `LEDGER-2.2`) and update every test that cites it.

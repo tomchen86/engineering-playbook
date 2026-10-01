@@ -5,9 +5,11 @@ description: Review a pull request before merge, and merge only the reviewed com
 
 # Review a pull request
 
+Check the PR out in its own worktree so your other work stays untouched: `git worktree add --detach ../review-<N>`, then run `gh pr checkout <N>` inside it.
+
 ## Checklist
 
-1. The PR is marked ready (not a draft), and CI is green: `gh pr checks <N>`.
+1. The PR is marked ready (not a draft), and CI is green: `gh pr checks <N> --watch --fail-fast`.
 2. The description has `Closes #<N>` or `No issue: <reason>`, and every template section is filled.
 3. The tests are unchanged since the latest spec commit (`Spec commit:` in the PR description): `git diff <spec-commit>..HEAD -- <test paths>` prints nothing.
 4. Spec, code, and tests say the same thing, and every test that cites a requirement actually checks it.

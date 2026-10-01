@@ -14,8 +14,14 @@ description: Move a roadmap phase into Now by turning its proposal section into 
    - Principles that code written from now on must obey are now present tense: write an ADR and add them to the principles in `docs/architecture.md`.
 3. Draft, and show the owner before creating anything:
    - A milestone named after the phase. Its description holds the phase's validation question.
-   - One parent issue per feature, shaped like `.github/ISSUE_TEMPLATE/feature.yml`: goal, acceptance criteria as EARS sentences (rough is fine), affected capabilities, out of scope. Split large features into sub-issues.
-4. After the owner approves, create the milestone and the issues, move the phase's roadmap line to Now, and make it link the milestone.
+   - One parent issue per feature, shaped like `.github/ISSUE_TEMPLATE/feature.yml`: goal, acceptance criteria as EARS sentences (rough is fine), affected capabilities, out of scope. Split a large feature into sub-issues one level deep, each small enough for its own PR.
+   - Which issues cannot start before others are done.
+4. After the owner approves, create them:
+   - Milestone: `gh api repos/{owner}/{repo}/milestones -f title="<phase>" -f description="<validation question>"`
+   - Parent issue: `gh issue create --title "<title>" --body-file <file> --label enhancement --milestone "<phase>"`
+   - Sub-issue: the same, plus `--parent <parent number>`.
+   - Order: `gh issue edit <N> --add-blocked-by <M>` when N cannot start before M is done.
+5. Move the phase's roadmap line to Now and make it link the milestone.
 
 ## Never
 

@@ -190,6 +190,15 @@ PR 在實作之前就開，有三個理由：spec 的 diff 就是派工單，也
 
 **Issue 和 PR 怎麼寫**：寫法就寫在模板裡：Issue Form 每個欄位的說明，以及 PR 模板每一段的註解。PR 模板也標明了每一段由誰填：規格作者開 draft 時填 `Closes` 和 Requirements（包括 Spec commit），實作者做完後填其餘各段，審查者只讀不填。人在網頁上開 Issue 和 PR 時會自動帶出模板；agent 用 `gh` 指令建立、直接給內文時，模板不會自動套用，所以由 skill 指定照模板寫。
 
+**Issue 側欄的四個功能**：基底由 [`scripts/setup-github.sh`](starter/scripts/setup-github.sh) 建好，之後照下表使用。每一項 agent 都能用 `gh` 指令操作。
+
+| 功能 | 基底 | 怎麼用 | 指令 |
+|---|---|---|---|
+| Labels | `enhancement`、`bug`、`skip-changelog` | 只用來讓 release notes 自動分類，所以一定要貼在 **PR** 上（Issue Form 會自動幫 Issue 貼）。不要用 label 表示狀態（用 Project 的 Status）、被擋住（用 Blocked by）或 capability（用 Issue Form 的欄位）。重複或決定不做的 Issue，用關閉原因，不用 `duplicate`、`wontfix` 這類 label | `gh pr edit <N> --add-label enhancement`；`gh issue close <N> --reason "not planned"` 或 `--duplicate-of <M>` |
+| Milestone | 一開始沒有 | 一個階段一個，階段移進 Now 時才由 `start-phase` 建立。名稱就是階段名，描述寫這個階段的驗證問題。這個階段的 Issue 都放進來，GitHub 會自動算進度 | `gh issue edit <N> --milestone "<階段名>"` |
+| Relationships | 沒有 | **Parent／sub-issue**：大功能拆成能各自開 PR 的小 Issue，拆一層就好，每個 sub-issue 各走一次 write-spec → 實作 → review-pr。**Blocked by／Blocking**：「A 做完才能做 B」，被擋住的 Issue 不開工。**Relates to**：相關但沒有先後，例如 bug 和引入它的功能，只供參考（在網頁上設定） | `gh issue create --parent <N>`；`gh issue edit <N> --add-blocked-by <M>` |
+| Development | 沒有 | 一個 Issue 一個分支、一個 PR。用 `gh issue develop` 開分支，分支和之後的 PR 都會出現在這一欄；PR 寫 `Closes #N`，merge 時才會自動關閉 Issue | `gh issue develop <N> --checkout` |
+
 **AGENTS.md**：多數 coding agent 開工時會自動讀 `AGENTS.md`；Claude Code 讀的是 `CLAUDE.md`，所以 starter 在裡面只放一行 `@AGENTS.md`，讓不同工具讀到同一份。它是 agent 唯一的記憶，每次開工都要重讀一次，所以長度本身就是成本：只放規則、指令，以及事實放在哪裡，控制在一頁以內。工具能檢查的，就不寫進來。
 
 **skills/**：只在某個時刻用得到的步驟，放在 repo 根目錄的 `skills/`，一個 skill 一個資料夾，裡面是一個照 Agent Skills 標準寫的 `SKILL.md`。starter 附了四個：`record-plan`（記錄規劃）、`start-phase`（開始一個階段）、`write-spec`（寫 spec）、`review-pr`（review 和 merge）。各家工具讀 skill 的資料夾不同，例如 Claude Code 讀 `.claude/skills/`、Codex 讀 `.agents/skills/`；用哪個工具，就把 `skills/` symlink 到它讀的位置。
@@ -241,7 +250,7 @@ Next 和 Later 的階段不開 Issue，細節留在 proposal。某個階段移�
 
 還沒做的東西不管改幾次，都不用碰 spec 和測試，只動 proposal、roadmap 和 Issue。spec 和測試會被機器檢查，改起來比較貴，只在行為真的改變時才動。另外，放在 repo 裡的文件（proposal、`roadmap.md`、ADR、`architecture.md`、spec、測試）可以在同一個 PR 裡一起改，看一份 diff 就能確認全部對得上。
 
-**模板**：[`AGENTS.md`](starter/AGENTS.md)、[`CLAUDE.md`](starter/CLAUDE.md)、[`docs/roadmap.md`](starter/docs/roadmap.md)、[`docs/proposals/template.md`](starter/docs/proposals/template.md)、[`skills/`](starter/skills/)、[`.github/ISSUE_TEMPLATE/`](starter/.github/ISSUE_TEMPLATE/)、[`.github/pull_request_template.md`](starter/.github/pull_request_template.md)、[`.github/release.yml`](starter/.github/release.yml)
+**模板**：[`AGENTS.md`](starter/AGENTS.md)、[`CLAUDE.md`](starter/CLAUDE.md)、[`docs/roadmap.md`](starter/docs/roadmap.md)、[`docs/proposals/template.md`](starter/docs/proposals/template.md)、[`skills/`](starter/skills/)、[`scripts/setup-github.sh`](starter/scripts/setup-github.sh)、[`.github/ISSUE_TEMPLATE/`](starter/.github/ISSUE_TEMPLATE/)、[`.github/pull_request_template.md`](starter/.github/pull_request_template.md)、[`.github/release.yml`](starter/.github/release.yml)
 
 **什麼時候改**：
 - **只能用一家 provider**：退到「不同 session」，並由你親自看測試的 diff，補回少掉的那一層獨立性。
@@ -319,11 +328,7 @@ Next 和 Later 的階段不開 Issue，細節留在 proposal。某個階段移�
 
 為什麼 `check` 只認 GitHub Actions：任何有 write 權限的帳號，都能透過 API 替某個 commit 貼上一個名叫 `check` 的「成功」狀態。ruleset 裡的 `integration_id: 15368`（GitHub Actions 的 ID）讓這種狀態不算數。
 
-套用方式（在新 repo 的目錄裡執行）：
-
-```bash
-for f in .github/rulesets/*.json; do gh api -X POST "repos/{owner}/{repo}/rulesets" --input "$f"; done
-```
+套用方式：在新 repo 的目錄裡執行 `bash scripts/setup-github.sh`。它會建立還不存在的 ruleset、只允許 squash merge 並在 merge 後自動刪除分支、建立 label，最後顯示 secret scanning 的狀態。重複執行也沒關係。
 
 也可以到 Settings → Rules → Rulesets 用 Import 匯入。如果匯入時說 actor 無效，就在介面上手動建立 `main-merge`：繞過名單加入 Repository admin，模式選 For pull requests only。
 
@@ -372,6 +377,7 @@ for f in .github/rulesets/*.json; do gh api -X POST "repos/{owner}/{repo}/rulese
 | 這條規則有測試 | 測試檔裡寫了編號 | 追溯檢查讀到的 JUnit 報告：跑過而且通過 |
 | 照規則改了 | PR 描述寫的 | diff |
 | 合進去的就是看過的版本 | 「我看過了」 | `--match-head-commit` |
+| 引用的程式碼 | 指向分支的連結：分支更新後，內容就變了 | 固定在 commit 上的永久連結：`gh browse <path>:<line> --commit <sha> --no-browser` |
 | 手動驗收做過了 | agent 說它驗過 | 你親自做的 |
 
 **模板**：沒有獨立的檔案。第 2、3 章的機制就是答案。

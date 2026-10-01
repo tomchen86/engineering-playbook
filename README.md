@@ -17,7 +17,7 @@
 2. 第 0 章：決定嚴格程度，填好 `docs/adr/0001-follow-engineering-playbook.md`，並記下這份 playbook 的 commit。
 3. 選技術：填好 `scripts/check.sh`（測試結果輸出成 JUnit XML 到 `reports/junit/`），並在 `.github/workflows/ci.yml` 加上工具鏈的 setup 步驟。
 4. 填好 `README.md` 和 `AGENTS.md` 裡的專案說明和指令；把 `skills/` symlink 到你用的 agent 工具讀 skill 的位置（第 1 章）。
-5. 建立 GitHub repo 並 push，套用 ruleset，做完兩個驗證（第 3 章）。
+5. 建立 GitHub repo 並 push，執行 `bash scripts/setup-github.sh`，再做完第 3 章的兩個驗證。
 6. 寫好 `docs/roadmap.md` 的目標和 Not doing；把實作者的 bot 帳號加成 collaborator。需要時再建 GitHub Project（第 1、3 章）。
 7. 第一個功能開始時，照第 1 章的流程寫第一份 spec。
 
