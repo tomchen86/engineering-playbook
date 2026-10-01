@@ -9,6 +9,7 @@
 - `gh pr checks <N> --watch --fail-fast`: wait for CI; returns at the first failure.
 - `gh run view <run-id> --log-failed`: read only the failed steps. `gh run rerun <run-id> --failed` reruns failed jobs; use it for flaky infrastructure, never to retry a real test failure.
 - `gh pr update-branch <N>`: bring a PR branch up to date with the default branch.
+- `<command>`: traced coverage. Runs only the tests that cite requirement IDs, with branch coverage on (review-pr step 6). Fill this in once the stack is chosen.
 - <Stack-specific commands you use often.>
 
 ## Where facts live
@@ -42,7 +43,7 @@ Once per phase:
 2. A phase moves to Now: `skills/start-phase/SKILL.md`.
 
 Once per issue that changes behavior. Refactors, typos, docs, and dependency bumps skip straight to a PR.
-1. Spec author: `skills/write-spec/SKILL.md`. Spec and failing tests first, then a draft PR. The PR exists before any implementation.
+1. Spec author: `skills/write-spec/SKILL.md`. Spec and failing tests first, then a draft PR. The owner approves the spec before any implementation starts.
 2. Implementer: Implementing, below. Push to the same branch until the tests pass, then mark the PR ready.
 3. Reviewer: `skills/review-pr/SKILL.md`. Review, report, and merge only when the owner says so.
 

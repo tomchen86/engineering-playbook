@@ -4,7 +4,8 @@
 # into reports/junit/ so scripts/trace_check.py can see which requirements pass.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-mkdir -p reports/junit
+# Start empty: a stale report would let a removed or now-skipped test still count.
+rm -rf reports/junit && mkdir -p reports/junit
 
 # Replace this block with your stack. Examples:
 #   Node + vitest: pnpm eslint . && pnpm prettier --check . && pnpm tsc --noEmit &&

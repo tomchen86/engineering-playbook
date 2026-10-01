@@ -9,8 +9,6 @@ This project started from the engineering playbook's starter at playbook commit 
 
 ## Decision
 
-- Strictness level (chapter 0): <0 prototype | 1 standard | 2 standard with critical areas>
-- Critical areas: <none, or e.g. money calculation, sync data loss>
 - Changes that merge without a human looking: <none>
 - Deviations from the playbook defaults: <none, or "chapter N: what we do instead, and why">
 

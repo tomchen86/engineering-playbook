@@ -7,7 +7,7 @@ Closes #
 
 ## Requirements
 
-<!-- Spec author, when opening the draft: IDs added, bumped, or removed (e.g. "LEDGER-2.2 (was 2.1)"), and "Spec commit: <sha>". Write "None" if behavior did not change. -->
+<!-- Spec author, when opening the draft: IDs added, bumped, or removed (e.g. "LEDGER-2.2 (was 2.1)"), and "Spec commits: <sha>" (the spec author appends one for every later spec update). Write "None" if behavior did not change. -->
 
 ## Rules discovered during implementation
 

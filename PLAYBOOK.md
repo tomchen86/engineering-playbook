@@ -100,12 +100,14 @@ Issue 描述「這次要做什麼」，做完就關閉。spec 描述「系統現
 |---|---|---|
 | 0 原型 | 做完就丟、只有自己用 | 只做第 7 章：`check.sh` 和 CI |
 | 1 一般 | 會長期維護的產品（**預設**） | 全部 |
-| 2 關鍵區域 | 1 級專案裡，出錯會造成金錢損失、資料遺失或安全問題的區域 | 1 級的全部，再加上：這些區域設覆蓋率門檻（第 2 章）、review 一定要看追溯覆蓋率清單、發版前做完 manual 清單 |
+| 2 關鍵區域 | 1 級專案裡，出錯會造成金錢損失、資料遺失或安全問題的區域 | 1 級的全部，再加上：這些區域設覆蓋率門檻（第 2 章第 6 點）、發版前做完 manual 清單 |
 | 3 受法規管制 | 醫療、航空、車用、金融交易 | 這份 playbook 不夠，照該領域的正式標準做 |
+
+**starter 只照 1 級設計。** 其他等級只在這裡說明，不另外做進 starter：0 級的原型直接省略 spec 和角色分工；2 級的覆蓋率門檻，照第 2 章第 6 點自己加在測試設定裡；3 級不在這份 playbook 的範圍。
 
 另一個相關的問題：**哪些改動可以不經人看就自動合併？** 預設答案：沒有，全部都要你看過。
 
-**模板**：[`docs/adr/0001-follow-engineering-playbook.md`](starter/docs/adr/0001-follow-engineering-playbook.md)，記下等級、關鍵區域，以及有沒有自動合併。
+**模板**：[`docs/adr/0001-follow-engineering-playbook.md`](starter/docs/adr/0001-follow-engineering-playbook.md)，記下有沒有自動合併，以及跟 playbook 預設不同的地方。
 
 **什麼時候改**：
 - 專案開始處理別人的錢或資料、使用者變多，或出過一次嚴重事故：升一級。
@@ -153,7 +155,7 @@ Issue 描述「這次要做什麼」，做完就關閉。spec 描述「系統現
    - 牽涉架構層級的選擇時，寫一篇 ADR。
    - 開 draft PR：描述寫 `Closes #N`，加上 `enhancement` 或 `bug` label。PR 在這時候就開，裡面只有 spec 和紅燈測試，還沒有任何實作。
    - **你的檢查點**：看 spec 的 diff，問自己「這就是我要的行為嗎？」這是整個流程裡改方向最便宜的時候，實作一行都還沒寫。
-3. **實作**（實作者，照 `AGENTS.md` 的 Implementing）：拿到的是分支、spec 的 diff 和紅燈測試，不是 Issue 的文字。commit 推到同一個分支，PR 會跟著更新。不改 spec 和既有的測試；spec 沒講到的行為分兩種：使用者或其他元件看得到的（例如除不盡的錢歸誰），先停下來在 PR 留言問規格作者，同時繼續做不受影響的部分；規格作者補進 spec 和紅燈測試，並更新 PR 描述裡的 Spec commit，實作者再照著做。只影響內部的細節，實作者自己決定。測試全綠後，填好 PR 其餘的段落，執行 `gh pr ready <N>` 把 draft 改成 ready。
+3. **實作**（實作者，照 `AGENTS.md` 的 Implementing）：拿到的是分支、spec 的 diff 和紅燈測試，不是 Issue 的文字。commit 推到同一個分支，PR 會跟著更新。不改 spec 和既有的測試；spec 沒講到的行為分兩種：使用者或其他元件看得到的（例如除不盡的錢歸誰），先停下來在 PR 留言問規格作者，同時繼續做不受影響的部分；規格作者補進 spec 和紅燈測試，並把這個新的 commit 加進 PR 描述的 Spec commits，實作者再照著做。只影響內部的細節，實作者自己決定。測試全綠後，填好 PR 其餘的段落，執行 `gh pr ready <N>` 把 draft 改成 ready。
 4. **Review**（審查者，`skills/review-pr`）：PR 改成 ready 之後才開始，第 2 章解釋清單每一項的理由。做完回報你：改了什麼、有什麼風險、看過的 commit SHA。
 5. **Merge**：你說可以，審查者執行 `gh pr merge <N> --squash --match-head-commit <SHA>`。
 6. **自動收尾**：因為有 `Closes #N`，Issue 自動關閉；有用 Project 的話，上面的項目會自動移到 Done。
@@ -173,7 +175,7 @@ Issue 描述「這次要做什麼」，做完就關閉。spec 描述「系統現
   ③ PR 改成 ready ──→ review-pr（審查者）：檢查 → 回報你 → 你說可以才 merge
 ```
 
-PR 在實作之前就開，有三個理由：spec 的 diff 就是派工單，也是你的檢查點，在 PR 裡看最清楚、可以直接留言；PR 描述記下 Spec commit，review 時才能確認實作者沒改過測試；CI 從一開始就跑，draft 階段測試是紅的，全綠就代表做完。draft 狀態的 PR，GitHub 不允許 merge，所以不會誤合半成品。
+PR 在實作之前就開，有三個理由：spec 的 diff 就是派工單，也是你的檢查點，在 PR 裡看最清楚、可以直接留言；PR 描述列出 Spec commits（規格作者的每一次提交），review 時才能確認實作者沒改過測試；CI 從一開始就跑，draft 階段測試是紅的，全綠就代表做完。draft 狀態的 PR，GitHub 不允許 merge，所以不會誤合半成品。
 
 不同類型的改動，差別只在第 2 步。表上 spec 和測試都不動的（重構），就跳過 write-spec，直接開 PR：
 
@@ -188,7 +190,7 @@ PR 在實作之前就開，有三個理由：spec 的 diff 就是派工單，也
 
 **派工單**：交給實作者的是 spec 的 diff 加上紅燈測試，不是 Issue。這樣的派工單精確、可以驗收，也不會把 Issue 裡不可信的文字帶進來（第 3 章）。
 
-**Issue 和 PR 怎麼寫**：寫法就寫在模板裡：Issue Form 每個欄位的說明，以及 PR 模板每一段的註解。PR 模板也標明了每一段由誰填：規格作者開 draft 時填 `Closes` 和 Requirements（包括 Spec commit），實作者做完後填其餘各段，審查者只讀不填。人在網頁上開 Issue 和 PR 時會自動帶出模板；agent 用 `gh` 指令建立、直接給內文時，模板不會自動套用，所以由 skill 指定照模板寫。
+**Issue 和 PR 怎麼寫**：寫法就寫在模板裡：Issue Form 每個欄位的說明，以及 PR 模板每一段的註解。PR 模板也標明了每一段由誰填：規格作者開 draft 時填 `Closes` 和 Requirements（包括 Spec commits），實作者做完後填其餘各段，審查者只讀不填。人在網頁上開 Issue 和 PR 時會自動帶出模板；agent 用 `gh` 指令建立、直接給內文時，模板不會自動套用，所以由 skill 指定照模板寫。
 
 **Issue 側欄的四個功能**：基底由 [`scripts/setup-github.sh`](starter/scripts/setup-github.sh) 建好，之後照下表使用。每一項 agent 都能用 `gh` 指令操作。
 
@@ -281,7 +283,7 @@ Next 和 Later 的階段不開 Issue，細節留在 proposal。某個階段移�
 - **不分語言**：幾乎所有測試工具都能輸出 JUnit XML（有些要多裝一個 reporter）。
 - **只有真的跑過、而且通過的測試才算數**：註解掉的、skip 的、失敗的都不算。直接讀原始碼的做法，這幾種都會被誤算成「有測試」。
 
-**3. 獨立驗證。** spec 和測試由規格作者寫，實作由實作者寫。review 時確認實作階段沒有動過測試：`git diff <spec 的 commit>..HEAD -- <測試路徑>` 應該沒有任何輸出。
+**3. 獨立驗證。** spec 和測試由規格作者寫，實作由實作者寫。review 時確認，動過測試的 commit 都是 PR 描述裡列出的 spec commit（指令見 `skills/review-pr`）。只比對最後一次 spec commit 之後的 diff 不夠：規格作者補過規格的話，實作者在那之前改過的測試就看不到了。
 
 **4. 衍生規則。** 衍生規則指實作時長出來、但 spec 沒寫的規則，例如「金額除不盡時，餘數算誰的」。沒辦法百分之百抓到，所以用四層：
 
@@ -437,6 +439,7 @@ Next 和 Later 的階段不開 Issue，細節留在 proposal。某個階段移�
 - 一個指令跑完全部。
 - 任何一項失敗，就回傳非 0。
 - 測試結果輸出成 JUnit XML，放到 `reports/junit/`。
+- 每次執行前先清空 `reports/junit/`：留下來的舊報告，會讓已經刪掉或改成 skip 的測試繼續算數。
 
 新專案的 `check.sh` 預設會失敗，提醒你還沒設定。選好技術之後，第一件事就是把它填好。
 
