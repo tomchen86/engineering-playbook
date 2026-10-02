@@ -21,7 +21,9 @@ A proposal is future tense: decided direction for work not started yet. It is no
 ## Changing a plan
 
 - A phase that has not started: write a new proposal that supersedes the old one. In the old proposal change only the Status line, to `Superseded by <new file>`. Point the roadmap links at the new proposal.
-- Work already in Now: edit its issue instead. Specs and tests change only when built behavior changes.
+- Work already in Now, before specs or acceptance tests exist: update the affected issue.
+- Specs or acceptance tests drafted but not approved: update the issue and have the spec author revise them in the draft PR, following `skills/write-spec/SKILL.md` for approval.
+- Specs already approved: once the owner confirms the new behavior, update the issue and have the spec author update the specs and acceptance tests on `spec/<branch>`. The implementer merges that update before continuing affected work.
 
 ## Never
 

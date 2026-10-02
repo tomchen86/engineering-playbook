@@ -25,7 +25,7 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-HEADING = re.compile(r"^#+\s*requirements?\b", re.IGNORECASE)  # anything that looks like one
+HEADING = re.compile(r"^ {0,3}#+\s*requirements?\b", re.IGNORECASE)  # anything that looks like one
 SECTION = re.compile(r"^##\s+Requirements\s*$")  # the section heading in the spec format
 REQUIREMENT = re.compile(r"^###\s+Requirement:\s+([A-Z][A-Z0-9]*-\d+\.\d+)(\s+\(manual\))?(?:\s|$)")
 CITATION = re.compile(r"(?<![A-Za-z0-9])([A-Z][A-Z0-9]*)[-_](\d+)[._](\d+)(?![0-9])")
@@ -61,6 +61,8 @@ def read_passing_citations(root):
         except ET.ParseError as err:
             sys.exit(f"trace-check: cannot read {path}: {err}")
         for case in cases:
+            if case.get("status") == "notrun" or case.get("result") == "suppressed":
+                continue
             if any(child.tag in NOT_PASSED for child in case):
                 continue
             name = f"{case.get('classname', '')} {case.get('name', '')}"

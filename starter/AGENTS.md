@@ -16,6 +16,7 @@
 
 - Structure (fields, types, API shapes, database constraints): the code, or files generated from it. Never restate it in prose.
 - Behavior: `docs/specs/<capability>/spec.md`, one `### Requirement:` per rule.
+- Acceptance tests, the ones that cite requirement IDs: `<acceptance test paths>`. Use literal paths relative to the repo root; keep configured directories tracked with a `.gitkeep` when empty. All other tests live elsewhere and cite no IDs.
 - Reasons: `docs/adr/`. Overview: `docs/architecture.md`.
 - Direction: `docs/roadmap.md`. The owner decides it; do not edit it unless asked.
 - Future plans: `docs/proposals/`. An accepted proposal is decided direction for work not started yet: not current behavior, not a work order.
@@ -34,6 +35,8 @@
 
 Three roles for each issue that changes behavior: spec author, implementer, reviewer. Play exactly one role per session, and hand off only through the repo: specs, tests, and the PR. If you wrote the spec or the tests for an issue in this session, do not implement it here. Changes that do not change behavior (typos, docs, refactors, dependency bumps) may be done in one session: make the change, open the PR, let CI run. The owner decides whether it also needs a reviewer session.
 
+Specs and acceptance tests belong to the spec author. Their approved version is the branch `spec/<branch>`, named after the PR's branch; only the owner's account can push it, and review compares the PR against it.
+
 ## Workflow
 
 Step-by-step procedures live in `skills/`. Read the skill before starting its step.
@@ -49,7 +52,9 @@ Once per issue that changes behavior. Refactors, typos, docs, and dependency bum
 
 ## Implementing
 
-- Make the failing tests pass. Do not edit the specs or the tests you were given; if a test looks wrong, stop and explain why.
+- Start only when `spec/<branch>` exists on the remote. Fetch with `git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main +refs/heads/spec/<branch>:refs/remotes/origin/spec/<branch>`; proceed only if it succeeds. Your work order is `git diff refs/remotes/origin/main...refs/remotes/origin/spec/<branch>`.
+- Make the failing tests pass. Never edit `docs/specs/` or the acceptance tests, not even to add a line. Clean merges of main's changes are allowed; review compares the merged result with what main plus the approved spec would produce. Put your own tests elsewhere, without requirement IDs. If a test looks wrong, stop and explain why.
+- The spec author's updates arrive on `spec/<branch>`: take them with `git fetch --no-tags origin refs/heads/spec/<branch> && git merge FETCH_HEAD`. Never resolve a conflict in specs or acceptance tests yourself: the spec author resolves it on `spec/<branch>`, then you merge that update. Independent changes on main do not require a spec-branch refresh.
 - Behavior the spec does not cover: if a user or another component would notice the choice (for example, who gets the remainder of an uneven split), stop and ask the spec author in a PR comment (`gh pr comment <N> --body "<question>"`), and meanwhile work on the parts that do not depend on the answer. Decide internal details yourself.
 - When the tests pass: fill the PR's What changed and Verification sections, then mark it ready for review with `gh pr ready <N>`.
 - Never merge, and never push to the default branch.

@@ -84,4 +84,4 @@ A test covers a requirement when it passes and its reported name contains the ID
 
 Keep other ID-shaped strings (`TLS-1.2`, `USD-1.5`, `HTTP_2_0`) out of test names: the trace check reads them as citations and reports them as unknown.
 
-Cite only behavior that a user or another component can observe; tests of internal details need no ID. When two components implement the same rule, both tests cite the same ID.
+Tests that cite IDs are the acceptance tests: the spec author writes them, in the paths listed in `AGENTS.md`. Cite only behavior that a user or another component can observe; tests of internal details live elsewhere and cite no ID. When two components implement the same rule, both tests cite the same ID.

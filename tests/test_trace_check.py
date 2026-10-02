@@ -58,6 +58,18 @@ class TraceCheck(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("untested:\n  LEDGER-3.1\n  LEDGER-4.1", out)
 
+    def test_googletest_execution_attributes_determine_coverage(self):
+        for attributes, expected in (('status="notrun"', 1),
+                                     ('result="suppressed"', 1),
+                                     ('status="notrun" result="suppressed"', 1),
+                                     ('status="run" result="completed"', 0)):
+            with self.subTest(attributes=attributes):
+                report = f'<testsuite><testcase name="SYNC-1.1" {attributes}/></testsuite>'
+                code, out = trace({"sync/spec.md": SYNC}, reports=(), extra_reports={"junit-gtest.xml": report})
+                self.assertEqual(code, expected, out)
+                if expected:
+                    self.assertIn("untested:\n  SYNC-1.1", out)
+
     def test_bumped_version_flags_tests_citing_the_old_one(self):
         code, out = trace({"ledger/spec.md": LEDGER.replace("LEDGER-1.1", "LEDGER-1.2"), "sync/spec.md": SYNC})
         self.assertEqual(code, 1)
@@ -87,7 +99,10 @@ class TraceCheck(unittest.TestCase):
         for heading in ("#### Requirement: LEDGER-4.1 Wrong level",
                         "### Requirements: LEDGER-4.1 Plural",
                         "### Requirement LEDGER-4.1 Missing colon",
-                        "### requirement: LEDGER-4.1 Lowercase"):
+                        "### requirement: LEDGER-4.1 Lowercase",
+                        " ### Requirement: LEDGER-4.1 One leading space",
+                        "  ### Requirement: LEDGER-4.1 Two leading spaces",
+                        "   ### Requirement: LEDGER-4.1 Three leading spaces"):
             with self.subTest(heading=heading):
                 code, out = trace({"ledger/spec.md": LEDGER + heading + "\n", "sync/spec.md": SYNC})
                 self.assertEqual(code, 1, out)
