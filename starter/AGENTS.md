@@ -16,8 +16,8 @@
 
 - Structure (fields, types, API shapes, database constraints): the code, or files generated from it. Never restate it in prose.
 - Behavior: `docs/specs/<capability>/spec.md`, one `### Requirement:` per rule.
-- Acceptance tests: `<acceptance test paths>`
-  The tests that cite requirement IDs, as literal paths from the repo root; `scripts/spec-check.sh` reads this line from main's copy of this file. Keep a listed directory tracked with a `.gitkeep` when empty. All other tests live elsewhere and cite no IDs.
+- Acceptance tests: `tests/acceptance`
+  The tests that cite requirement IDs, as literal paths from the repo root; `scripts/spec-check.sh` reads this line from main's copy of this file. Change it only if your test runners cannot find tests there, for example one directory per app in a monorepo. Keep a listed directory tracked with a `.gitkeep` when empty. All other tests live elsewhere and cite no IDs.
 - Reasons: `docs/adr/`. Overview: `docs/architecture.md`.
 - Direction: `docs/roadmap.md`. The owner decides it; do not edit it unless asked.
 - Future plans: `docs/proposals/`. An accepted proposal is decided direction for work not started yet: not current behavior, not a work order.

@@ -151,5 +151,15 @@ class StarterConfig(unittest.TestCase):
         indexed = set(re.findall(r"`skills/([a-z0-9-]+)/SKILL\.md`", agents))
         self.assertEqual(indexed, {path.parent.name for path in skills})
 
+    def test_the_default_acceptance_paths_are_tracked_in_the_starter(self):
+        """A new project's spec-check works before anyone edits the Acceptance tests line."""
+        agents = (ROOT / "starter/AGENTS.md").read_text(encoding="utf-8")
+        line = re.search(r"^- Acceptance tests: (.*)$", agents, re.M)
+        self.assertIsNotNone(line, "AGENTS.md needs an Acceptance tests line")
+        paths = re.findall(r"`([^`]+)`", line.group(1))
+        self.assertTrue(paths)
+        for path in paths:
+            self.assertTrue((ROOT / "starter" / path / ".gitkeep").is_file(), f"{path}: not in the starter, or untracked while empty")
+
 if __name__ == "__main__":
     unittest.main()

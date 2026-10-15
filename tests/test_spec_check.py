@@ -21,8 +21,10 @@ STARTER = SCRIPT.parents[1]
 
 
 def agents(*paths):
-    """The starter's AGENTS.md with the acceptance test paths filled in: the fixture uses the real line format."""
-    return (STARTER / "AGENTS.md").read_text().replace("<acceptance test paths>", "`, `".join(paths))
+    """The starter's AGENTS.md with these acceptance test paths: the fixture uses the real line format."""
+    text, line = (STARTER / "AGENTS.md").read_text(), "- Acceptance tests: `tests/acceptance`\n"
+    assert text.count(line) == 1, "the Acceptance tests line in starter/AGENTS.md changed: update this fixture"
+    return text.replace(line, "- Acceptance tests: `" + "`, `".join(paths) + "`\n")
 
 
 def git(cwd, *args):

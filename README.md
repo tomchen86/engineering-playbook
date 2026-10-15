@@ -16,7 +16,7 @@
    ```
 2. 第 0 章：確認這是會長期維護的產品（starter 照這個等級設計），填好 `docs/adr/0001-follow-engineering-playbook.md`，並記下這份 playbook 的 commit。
 3. 選技術：填好 `scripts/check.sh`（測試結果輸出成 JUnit XML 到 `reports/junit/`），並在 `.github/workflows/ci.yml` 加上工具鏈的 setup 步驟。
-4. 填好 `README.md` 和 `AGENTS.md` 裡的專案說明、指令和驗收測試的路徑，空的驗收目錄用 `.gitkeep` 納入 Git；把 `skills/` symlink 到你用的 agent 工具讀 skill 的位置（第 1 章）。review 的 spec 檢查需要 Git 2.43 以上。
+4. 填好 `README.md` 和 `AGENTS.md` 裡的專案說明和指令。驗收測試預設放在 `tests/acceptance/`，已附 `.gitkeep`；只有測試工具找不到那裡時（例如 monorepo 裡每個 app 各有自己的測試設定），才改 `AGENTS.md` 的 Acceptance tests 那一行。把 `skills/` symlink 到你用的 agent 工具讀 skill 的位置（第 1 章）。review 的 spec 檢查需要 Git 2.43 以上。
 5. 建立 GitHub repo 並 push，執行 `bash scripts/setup-github.sh`。
 6. 寫好 `docs/roadmap.md` 的目標和 Not doing；把實作者的 bot 帳號加成 collaborator，再做完第 3 章的驗證。需要時再建 GitHub Project（第 1、3 章）。
 7. 第一個功能開始時，照第 1 章的流程寫第一份 spec。
