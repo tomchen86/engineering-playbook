@@ -262,9 +262,7 @@ Next 和 Later 的階段不開 Issue，細節留在 proposal。某個階段移�
 **什麼時候改**：
 - **只能用一家 provider**：退到「不同 session」，並由你親自看測試的 diff，補回少掉的那一層獨立性。
 - **有第二個人類加入**：打開 required approval、加上 CODEOWNERS（第 3 章）。
-- **不改變行為的改動**（錯字、文件、重構、套件更新）：跳過第 2 步，一個 session 改完、開 PR、讓 CI 跑；要不要另外開審查者的 session，由你決定。
-
-純文件 PR 若修改 `docs/specs/` 的文字，但不改需求意思或編號，你認可確切的 commit 後，用你的帳號執行 `git push origin <認可的 SHA>:refs/heads/spec/<分支名>`，作為認可版本。不必新增紅燈測試或另開實作者 session；CI 照跑，merge 仍要你說可以。
+- **不改變行為的改動**（錯字、文件、重構、套件更新）：跳過第 2 步，一個 session 改完、開 PR、讓 CI 跑；要不要另外開審查者的 session，由你決定。只改 `docs/specs/` 的文字、不改意思和編號時，你認可確切的 commit 後，用你的帳號執行 `git push origin <認可的 SHA>:refs/heads/spec/<分支名>` 當認可版本，不必紅燈測試和實作者 session；CI 照跑，merge 仍要你說可以。
 
 ---
 
@@ -306,15 +304,9 @@ review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 比對 `d
 
 有衝突就停下來：main 和 `spec/` 分支在 spec 或驗收測試上的衝突，由規格作者在 `spec/` 分支解決，再交給實作者合入；PR 更新 main 時的程式碼衝突由實作者處理。腳本不替人決定衝突的意思。
 
-沒有 `spec/` 分支的 PR，認可版本就是 main：head 不能改變這些檔案。純文字修正若涉及 `docs/specs/`，沿用第 1 章的簡短做法建立認可版本。審查者先明確 fetch main，再從 `FETCH_HEAD` 讀取腳本；讀取成功才執行。驗收路徑由腳本自己從 main 的 `AGENTS.md` 讀，不經人手抄，因為 PR 改得到這兩個檔案，而少抄一個路徑不會有任何錯誤訊息。
+沒有 `spec/` 分支的 PR，認可版本就是 main：head 不能改變這些檔案。純文字修正若涉及 `docs/specs/`，沿用第 1 章「不改變行為的改動」的做法建立認可版本。審查者先明確 fetch main，再從 `FETCH_HEAD` 讀取腳本；讀取成功才執行。驗收路徑由腳本自己從 main 的 `AGENTS.md` 讀，不經人手抄，因為 PR 改得到這兩個檔案，而少抄一個路徑不會有任何錯誤訊息。
 
-腳本還會擋掉幾種「其實沒比到」的情況，不讓它們默默通過：
-
-- 路徑在 main、`spec/` 分支和 PR 裡都不存在，例如打錯字。認可刪掉最後一個測試時，main 上仍有該路徑，所以不會誤擋這次刪除；仍列在 `AGENTS.md` 的空驗收目錄用 `.gitkeep` 保持受 Git 追蹤，讓之後的 PR 也能檢查。
-- 審查者 checkout 的 commit 不是 PR 現在的 head。這保證比對過的、審查過的、最後用 `--match-head-commit` 合進去的是同一個 commit。
-- 名字被冒用。實作者推得動任何不是 `spec/` 開頭的分支，沒套用 `tags` ruleset 的 repo 裡還推得動 tag（第 3 章），而 git 解析 `origin/main` 這種名字時，同名的 tag 優先於遠端分支；名字結尾相同的分支也可能被簡略的 fetch 指令選中。所以腳本只向 origin 問一次分支清單，用完全相同的名字找出 commit，之後只用 commit ID。skill 的合併指令先 fetch 明確的 `refs/heads/...` 再用 `FETCH_HEAD`；派工單先 fetch 到指定的完整遠端 ref，成功後才做 diff。
-
-以上每一種情況都有自我測試（`tests/test_spec_check.py`）。
+腳本也擋掉幾種「其實沒比到」的情況：驗收路徑在 main、`spec/` 分支和 PR 裡都不存在（打錯字）；審查者 checkout 的不是 PR 現在的 head；名字被冒用，例如同名的 tag 或名字結尾相同的分支冒充 `origin/main` 或 `spec/` 分支，所以腳本和 skill 只用完整的 ref 名稱和 commit ID。每一種都有自我測試（`tests/test_spec_check.py`），細節在腳本的註解裡。
 
 這個比對證明的是：在檢查當下的 main 上，PR head 的 spec 和驗收測試，跟用 main 的合併設定算出的認可結果一致。合併前再跑一次，並確認 PR head 和 spec SHA 沒變；`ok` 也列出這次用的 main SHA。它不證明你真的同意過（規格作者用的也是你的帳號），不證明測試合理、有跑，也不證明程式符合 spec；這些靠第 1 章第 2 步你的檢查點、CI、追溯檢查和 review。實作者拿到你的憑證時，這道保護也會失效（附錄 C 第 5 點）。
 
@@ -590,7 +582,7 @@ DO-178C 假設開發者是人，所以沒有問下面這幾題。它們是 agent
 | 基準版本、變更委員會 | git tag 加上 PR；你說可以 merge，就是批准 | 用現有的取代 |
 | 問題報告 | Issue。bug 的 Issue Form 要填寫壞掉的是哪一條 requirement | 用現有的取代 |
 | 結構覆蓋率門檻 | 只對第 0 章的關鍵區域設分支覆蓋率門檻，只升不降，其他地方不設。門檻如果套在全部程式上，很容易被湊數；MC/DC 的成本是為最高等級設計的 | 只用在高風險區域 |
-| 獨立性 | 規格作者寫 spec 和測試，實作者寫程式，你決定 merge；角色之間至少分開 session，最好用不同 provider 的模型（第 1 章）。這是最值錢的一項，在 agent 開發裡成本很低 | 留 |
+| 獨立性 | 規格作者寫 spec 和測試，實作者寫程式，你決定 merge；角色之間至少分開 session，最好用不同 provider 的模型（第 1 章）；認可版本由 ruleset 保護，review 用 `spec-check.sh` 比對（第 2 章）。這是最值錢的一項，在 agent 開發裡成本很低 | 留 |
 | 在目標硬體上測試 | 少數 requirement 標上 `(manual)`，在實機上驗收 | 留，範圍小 |
 | 5 份計畫、3 份標準 | 文件的形式丟掉，問題保留：就是這份 playbook 的 8 章（附錄 A） | 留問題，丟文件 |
 | review 檢查清單和紀錄 | 清單寫在 `skills/review-pr`；紀錄就是 PR 本身 | 用現有的取代 |
