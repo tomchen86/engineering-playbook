@@ -53,7 +53,7 @@ WHILE a member scrolls a list of 500 expenses on a physical phone, the mobile ap
 - When the meaning changes, bump the version (`LEDGER-2.1` → `LEDGER-2.2`) and update every test that cites it. Tests still citing `LEDGER-2.1` fail the trace check, which is how you find all of them.
 - Wording and typo fixes keep the version.
 - `(manual)` right after the ID marks a requirement no automated test can check. The trace check lists these as the pre-release manual checklist.
-- A `### Requirement:` heading without a valid ID fails the trace check instead of being skipped.
+- A heading that looks like a requirement (any level, any case, singular or plural) but is not exactly `### Requirement: <ID>` fails the trace check instead of being skipped.
 
 ## Sentences (EARS)
 

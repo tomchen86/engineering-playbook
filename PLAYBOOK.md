@@ -282,7 +282,7 @@ Next 和 Later 的階段不開 Issue，細節留在 proposal。某個階段移�
 | untested | 有 requirement，但沒有通過的測試引用它 | 失敗 |
 | unknown or stale | 已通過的測試引用的編號在 spec 裡不存在：可能打錯字，也可能 requirement 已經升版 | 失敗 |
 | duplicate | 同一個序號宣告了兩次 | 失敗 |
-| malformed | `### Requirement:` 標題沒有合法的編號 | 失敗 |
+| malformed | 看起來像 requirement 的標題（任何層級、大小寫、單複數），卻不是正好 `### Requirement: <編號>` | 失敗 |
 | manual | 標了 `(manual)` 的 requirement | 列出來，當發版前的人工驗收清單 |
 
 它讀的是測試**報告**，不是測試原始碼，原因有兩個：
