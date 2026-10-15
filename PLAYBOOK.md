@@ -153,16 +153,16 @@ Issue 描述「這次要做什麼」，做完就關閉。spec 描述「系統現
 0. **想法**：有用 GitHub Project 的話，建一個 draft item（只存在 Project 裡、還不是 Issue 的項目）；沒有的話，好幾個階段的大方向，討論後寫成 proposal（見下方）；小想法等決定要做再開 Issue。
 1. **決定要做，開 Issue**（用 Issue Form）：目標、驗收條件（用 EARS 句子寫，之後原樣搬進 spec）、影響哪些 capability、不做什麼。大功能拆成 sub-issues，每個 sub-issue 各走一次第 2～6 步。有用 Project 的話，你把它排進 Ready，才算准許開工。
 2. **寫 spec 和紅燈測試**（規格作者，`skills/write-spec`）：
-   - `gh issue develop <N> --checkout`：建立連到 Issue 的分支，分支會出現在 Issue 的 Development 欄位。開完先確認 origin 上沒有同名的 `spec/<分支名>` 留下來，有就停下來告訴你：實作者會把它當成這個 PR 的認可版本。
+   - 開一個連到 Issue 的分支，它會出現在 Issue 的 Development 欄位。origin 上不能有同名的 `spec/<分支名>` 遺留，否則實作者會把它當成這個 PR 的認可版本。
    - 改 spec：新增、改版或刪除 requirement。
    - 寫引用編號的測試（驗收測試），放在 `AGENTS.md` 指定的目錄，這時測試是紅的。先把邊界情況寫進去：除不盡、空值、零、上限、重複。衍生規則大多從這些地方長出來（第 2 章）。測試打在元件對外的邊界（HTTP、CLI、匯出的 API），不打內部；邊界還不存在時補最小的 stub，讓紅燈是斷言失敗、不是建置失敗，否則 `check.sh` 停在編譯，追溯檢查會把所有編號列成 untested。
    - 牽涉架構層級的選擇時，寫一篇 ADR。
    - 開 draft PR：描述寫 `Closes #N`，加上 `enhancement` 或 `bug` label。PR 在這時候就開，裡面只有 spec 和紅燈測試，還沒有任何實作。
    - **你的檢查點**：看 spec 的 diff，問自己「這就是我要的行為嗎？」這是整個流程裡改方向最便宜的時候，實作一行都還沒寫。
    - 你同意之後，規格作者把你看過的那個 commit 推到 `spec/<分支名>`。這種分支只有你的帳號推得動（第 3 章），它是 spec 和驗收測試的認可版本：實作者看到它才開工，review 拿 PR 跟它比對（第 2 章第 3 點）。
-3. **實作**（實作者，照 `AGENTS.md` 的 Implementing）：`spec/<分支名>` 存在才開工。拿到的是分支、spec 的 diff 和紅燈測試，不是 Issue 的文字。commit 推到同一個分支，PR 會跟著更新。不改 spec 和驗收測試，連新增一行也不行；自己的測試放在別的目錄，不引用編號。spec 沒講到的行為分兩種：使用者或其他元件看得到的（例如除不盡的錢歸誰），先停下來在 PR 留言問規格作者，同時繼續做不受影響的部分；規格作者把 requirement 和紅燈測試補在 `spec/<分支名>` 上，實作者 merge 進來再照著做。只影響內部的細節，實作者自己決定。測試全綠後，填好 PR 其餘的段落，執行 `gh pr ready <N>` 把 draft 改成 ready。
+3. **實作**（實作者，照 `AGENTS.md` 的 Implementing）：`spec/<分支名>` 存在才開工。拿到的是分支、spec 的 diff 和紅燈測試，不是 Issue 的文字。commit 推到同一個分支，PR 會跟著更新。不改 spec 和驗收測試，連新增一行也不行；自己的測試放在別的目錄，不引用編號。spec 沒講到的行為分兩種：使用者或其他元件看得到的（例如除不盡的錢歸誰），先停下來在 PR 留言問規格作者，同時繼續做不受影響的部分；規格作者把 requirement 和紅燈測試補在 `spec/<分支名>` 上，實作者 merge 進來再照著做。只影響內部的細節，實作者自己決定。測試全綠後，填好 PR 其餘的段落，把 draft 改成 ready。
 4. **Review**（審查者，`skills/review-pr`）：PR 改成 ready 之後才開始，第 2 章解釋清單每一項的理由。做完回報你：改了什麼、有什麼風險、看過的 commit SHA，以及比對時用的 spec SHA。一次只讓一個 PR 走完最後這段（跟上 main、檢查、回報、merge）：每合併一個 PR，其他 PR 都會落後 main，合併前做完的 review 得在更新後的 head 上重做。其他 PR 可以繼續實作。
-5. **Merge**：你說可以，審查者執行 `gh pr merge <N> --squash --admin --match-head-commit <SHA>`（`--admin` 為什麼必要、為什麼安全，見第 3 章），再刪掉 `spec/<分支名>`：它不是 PR 的分支，GitHub 不會自動刪。PR 沒合併就關掉時也一樣。
+5. **Merge**：你說可以，審查者只合併他看過的那個 commit（第 3 章第 3 點），再刪掉 `spec/<分支名>`：它不是 PR 的分支，GitHub 不會自動刪。PR 沒合併就關掉時也一樣。
 6. **自動收尾**：因為有 `Closes #N`，Issue 自動關閉；有用 Project 的話，上面的項目會自動移到 Done。
 7. **手動驗收**：有 `(manual)` requirement 時，照追溯檢查列出的清單，在實機上驗收。沒通過就開新的 Issue。
 8. **發版**：GitHub Releases 會依 PR 的 label 分類，自動產生 release notes，你再改寫成使用者看得懂的摘要。
@@ -176,7 +176,7 @@ Issue 描述「這次要做什麼」，做完就關閉。spec 描述「系統現
 
 每個會改變行為的 Issue 一次
   ① 開始處理     ──→ write-spec（規格作者）：spec + 紅燈測試 → 開 draft PR → 你同意後推 spec/<分支名>
-  ② 實作         ──→ 沒有 skill，照 AGENTS.md：推到同一個 PR，全綠後 gh pr ready
+  ② 實作         ──→ 沒有 skill，照 AGENTS.md：推到同一個 PR，全綠後改成 ready
   ③ PR 改成 ready ──→ review-pr（審查者）：檢查 → 回報你 → 你說可以才 merge
 ```
 
@@ -193,7 +193,7 @@ PR 在實作之前就開，有兩個理由：spec 的 diff 就是派工單，也
 | 重構 | spec 和測試都不動 |
 | 推翻舊的架構決定 | 寫一篇新的 ADR，把舊的狀態改成「被 ADR-NNNN 取代」 |
 
-**派工單**：交給實作者的是 spec 的 diff 加上紅燈測試（按 `write-spec` 的指令 fetch 成功後，執行 `git diff refs/remotes/origin/main...refs/remotes/origin/spec/<分支名>`），不是 Issue。這樣的派工單精確、可以驗收，也不會把 Issue 裡不可信的文字帶進來（第 3 章）。
+**派工單**：交給實作者的是 spec 的 diff 加上紅燈測試（main 到 `spec/<分支名>` 的 diff，指令在 `skills/write-spec`），不是 Issue。這樣的派工單精確、可以驗收，也不會把 Issue 裡不可信的文字帶進來（第 3 章）。
 
 **Issue 和 PR 怎麼寫**：寫法就寫在模板裡：Issue Form 每個欄位的說明，以及 PR 模板每一段的註解。PR 模板也標明了每一段由誰填：規格作者開 draft 時填 `Closes` 和 Requirements，實作者做完後填其餘各段，審查者只讀不填。人在網頁上開 Issue 和 PR 時會自動帶出模板；agent 用 `gh` 指令建立、直接給內文時，模板不會自動套用，所以由 skill 指定照模板寫。
 
@@ -368,7 +368,7 @@ review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 比對 `d
 
 為什麼 `check` 只認 GitHub Actions：任何有 write 權限的帳號，都能透過 API 替某個 commit 貼上一個名叫 `check` 的「成功」狀態。ruleset 裡的 `integration_id: 15368`（GitHub Actions 的 ID）讓這種狀態不算數。
 
-`main-integrity` 也開啟 GitHub 的[合併前分支須保持最新](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets#require-status-checks-to-pass-before-merging)。PR 落後 main 時，用 `gh pr update-branch <N>` 更新，等新 head 的 CI 通過，審查新增改動並更新報告中的 head SHA，再合併；有衝突時，spec 和驗收測試交回規格作者，程式碼交回實作者。代價是 main 前進時，尚未合併的 PR 需要更新並重跑 CI。
+`main-integrity` 也開啟 GitHub 的[合併前分支須保持最新](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets#require-status-checks-to-pass-before-merging)。PR 落後 main 時，先更新、等新 head 的 CI 通過、審查新增的改動，再合併（步驟在 `skills/review-pr`）；有衝突時，spec 和驗收測試交回規格作者，程式碼交回實作者。代價是 main 前進時，尚未合併的 PR 需要更新並重跑 CI。
 
 套用方式：在新 repo 的目錄裡執行 `bash scripts/setup-github.sh`。它會建立缺少的 ruleset、更新既有的同名 ruleset，並設定只允許 squash merge、merge 後自動刪除分支，建立 label，最後顯示 secret scanning 的狀態。Ruleset 以 `.github/rulesets/` 裡的 JSON 為準，重複執行也會同步更新；自訂規則請先修改 JSON，避免 GitHub 網頁上的修改被覆蓋。
 
@@ -389,7 +389,7 @@ review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 比對 `d
 - bot 的憑證只放進實作者的環境，例如讓 `GH_CONFIG_DIR` 指向一個只有 bot 的設定目錄。
 - 在同一個 OS 使用者底下，實作者讀得到你的 keychain。環境隔離只防得了「不小心」，防不了「被誘導」。要真正隔離，就讓實作者跑在容器裡。
 
-**3. Merge 時釘住 commit。** `gh pr merge <N> --squash --admin --match-head-commit <SHA>`。`--admin` 是必要的：只有你能更新 main，靠的是 `main-merge` 的繞過名單，而 `gh` 不加 `--admin` 就不會使用這個繞過（[cli/cli#13388](https://github.com/cli/cli/issues/13388)，已在測試 repo 實測）。它也是安全的：`main-integrity` 沒有人能繞過，所以 `--admin` 跳不過失敗的 `check`（實測：紅燈的 PR 加 `--admin` 會被拒絕）。`--match-head-commit`：如果 review 之後實作者又推了新的 commit，merge 會失敗，沒看過的東西就不會被合進去。
+**3. Merge 時釘住 commit。** 審查者合併時用 `--match-head-commit` 指定看過的 commit，並加上 `--admin`（完整指令在 `skills/review-pr`）。`--admin` 是必要的：只有你能更新 main，靠的是 `main-merge` 的繞過名單，而 `gh` 不加 `--admin` 就不會使用這個繞過（[cli/cli#13388](https://github.com/cli/cli/issues/13388)，已在測試 repo 實測）。它也是安全的：`main-integrity` 沒有人能繞過，所以 `--admin` 跳不過失敗的 `check`（實測：紅燈的 PR 加 `--admin` 會被拒絕）。`--match-head-commit`：如果 review 之後實作者又推了新的 commit，merge 會失敗，沒看過的東西就不會被合進去。
 
 **4. 分支和 Issue。** 用 `gh issue develop <N> --checkout` 建分支，PR 描述寫 `Closes #N`。從這種分支開的 PR 會自動連到 Issue，但官方只保證 `Closes #N` 這類關鍵字會在 merge 時關閉 Issue，所以兩個都要。沒有 Issue 的小改動（錯字、文件、套件更新）不會經過 `write-spec`，所以 `AGENTS.md` 有一條一直有效的規則：每個改動都透過 PR 進 main，沒有 Issue 的 PR 寫 `No issue: <原因>`，讓 review 的人看到為什麼沒有。
 
