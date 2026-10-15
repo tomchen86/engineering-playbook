@@ -34,4 +34,4 @@ gh pr merge <N> --squash --admin --match-head-commit <reviewed SHA>
 
 `--admin` is required: only the owner may update main (the `main-merge` ruleset), and `gh` will not use that bypass without it. It is also safe: nobody can bypass `main-integrity`, so `--admin` cannot skip a failing `check` or merge a branch behind main. If the head moved after the review, the merge fails; review the new commits first.
 
-Afterwards, delete the spec branch if there was one (`git push origin --delete refs/heads/spec/<branch>`), and remove the review worktree: `git worktree remove ../review-<N>`. A PR closed without merging loses its spec branch the same way.
+Afterwards, delete the spec branch if there was one (`git push origin --delete refs/heads/spec/<branch>`), and remove the review worktree: `git worktree remove ../review-<N>`. When a PR is closed without merging, delete its spec branch the same way.
