@@ -4,8 +4,7 @@
 
 ## Commands
 
-- `bash scripts/check.sh`: lint, format check, typecheck, tests. Tests write JUnit XML to `reports/junit/`.
-- `python3 scripts/trace_check.py`: requirement trace. Run it after `check.sh`.
+- `bash scripts/check.sh`: lint, format check, typecheck, tests, then the requirement trace, which runs even when a step fails. Tests write JUnit XML to `reports/junit/`.
 - `gh pr checks <N> --watch --fail-fast`: wait for CI; returns at the first failure.
 - `gh run view <run-id> --log-failed`: read only the failed steps. `gh run rerun <run-id> --failed` reruns failed jobs; use it for flaky infrastructure, never to retry a real test failure.
 - `gh pr update-branch <N>`: bring a PR branch up to date with the default branch.

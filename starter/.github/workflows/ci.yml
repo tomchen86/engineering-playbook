@@ -22,8 +22,5 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       # Add your toolchain setup here, e.g. actions/setup-node, actions/setup-python, actions/setup-go.
-      - name: Lint, format check, typecheck, tests
+      - name: Lint, format check, typecheck, tests, requirement trace
         run: bash scripts/check.sh
-      - name: Requirement trace
-        if: ${{ !cancelled() }}
-        run: python3 scripts/trace_check.py

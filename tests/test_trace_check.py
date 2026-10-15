@@ -122,6 +122,42 @@ class TraceCheck(unittest.TestCase):
         self.assertIn("cannot read", out)
 
 
+class CheckEntry(unittest.TestCase):
+    """check.sh is the one entry: the requirement trace runs last, even when a step above fails."""
+
+    PLACEHOLDER = 'echo "scripts/check.sh is not configured yet: pick your stack and replace this block." >&2\nexit 1\n'
+
+    def run_check(self, stack_status, testcase):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            (repo / "scripts").mkdir()
+            shutil.copy(SCRIPT, repo / "scripts" / "trace_check.py")
+            check = (ROOT / "starter/scripts/check.sh").read_text(encoding="utf-8")
+            self.assertEqual(check.count(self.PLACEHOLDER), 1, "the stack placeholder in check.sh changed: update this test")
+            stack = f"echo '<testsuite>{testcase}</testsuite>' > reports/junit/stack.xml\nexit {stack_status}\n"
+            (repo / "scripts/check.sh").write_text(check.replace(self.PLACEHOLDER, stack), encoding="utf-8")
+            spec = repo / "docs/specs/ledger/spec.md"
+            spec.parent.mkdir(parents=True)
+            spec.write_text("### Requirement: LEDGER-1.1 Percentage split sums to 100\n", encoding="utf-8")
+            result = subprocess.run(["bash", "scripts/check.sh"], cwd=repo, capture_output=True, text=True)
+            return result.returncode, result.stdout + result.stderr
+
+    def test_the_trace_still_reports_when_a_test_fails(self):
+        """The red phase: the spec author needs the new IDs listed as untested."""
+        code, out = self.run_check(1, '<testcase name="[LEDGER-1.1] rejects 99"><failure/></testcase>')
+        self.assertEqual(code, 1, out)
+        self.assertIn("untested:\n  LEDGER-1.1", out)
+
+    def test_a_failing_trace_fails_the_check_even_when_the_tests_pass(self):
+        code, out = self.run_check(0, '<testcase name="unrelated"/>')
+        self.assertEqual(code, 1, out)
+        self.assertIn("untested:\n  LEDGER-1.1", out)
+
+    def test_passing_tests_that_cite_every_requirement_pass(self):
+        code, out = self.run_check(0, '<testcase name="[LEDGER-1.1] rejects 99"/>')
+        self.assertEqual(code, 0, out)
+
+
 class StarterConfig(unittest.TestCase):
     def test_required_status_check_is_a_ci_job_name(self):
         ci = (ROOT / "starter/.github/workflows/ci.yml").read_text(encoding="utf-8")

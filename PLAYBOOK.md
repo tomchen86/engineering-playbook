@@ -274,7 +274,7 @@ Next 和 Later 的階段不開 Issue，細節留在 proposal。某個階段移�
 
 **預設答案**：
 
-**1. 一個檢查指令。** [`scripts/check.sh`](starter/scripts/check.sh) 跑 lint、格式檢查、型別檢查和測試，測試結果輸出成 JUnit XML，放到 `reports/junit/`。CI 和 agent 跑的是同一個指令。
+**1. 一個檢查指令。** [`scripts/check.sh`](starter/scripts/check.sh) 跑 lint、格式檢查、型別檢查和測試，最後跑需求追溯（第 2 點）。前面任何一步失敗，追溯檢查照樣會跑：紅燈階段測試本來就會失敗，這時正需要它的報告。測試結果輸出成 JUnit XML，放到 `reports/junit/`。CI 和 agent 跑的是同一個指令。
 
 **2. 需求追溯。** [`scripts/trace_check.py`](starter/scripts/trace_check.py) 比對 spec 裡的編號，以及「跑過而且通過的測試」引用的編號：
 
@@ -336,7 +336,7 @@ review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 比對 `d
 **模板**：[`scripts/check.sh`](starter/scripts/check.sh)、[`scripts/trace_check.py`](starter/scripts/trace_check.py)、[`scripts/spec-check.sh`](starter/scripts/spec-check.sh)、[`.github/workflows/ci.yml`](starter/.github/workflows/ci.yml)
 
 **什麼時候改**：
-- **測試分散在多個 CI job**（例如 monorepo 每個 app 一個 job）：每個 job 把 `reports/junit/` 上傳成 artifact，另外開一個 job 下載全部之後，再跑追溯檢查。
+- **測試分散在多個 CI job**（例如 monorepo 每個 app 一個 job）：每個 job 把 `reports/junit/` 上傳成 artifact，另外開一個 job 下載全部之後，再跑追溯檢查。這時要把 `check.sh` 裡的追溯檢查移到最後那個 job：每個 job 只看得到自己的報告，別的 job 測過的編號都會被當成 untested。
 - **審查者漏跑過 spec-check，或常有不經審查者的 PR**：把它加進 CI 當 required check，用 main 的腳本比對 PR head。要點：checkout 指定 `pull_request.head.sha` 和 `fetch-depth: 0`，否則 HEAD 對不上、`merge-base` 誤判；不能用 `if:` 跳過 draft，被跳過的 job 算通過；分支名用 `env:` 傳進 `run:`。它只擋「忘了跑」：綠燈綁在 head 上，`spec/` 分支更新後不會重跑，所以合併前仍要照 review-pr 第 3 步本機跑一次，不改要求內容的 spec 或驗收測試 PR，推完 `spec/` 分支也要 rerun。
 - **有人提議「改了程式卻沒改 docs 就讓 CI 失敗」**：預設不做。程式碼通常按技術分層（controller、service、entity），從改了哪個檔案，看不出該對應哪份 spec；重構和修 bug 大多也不用改 spec，誤報一多就沒人看了。行為改了有沒有跟著改 spec，交給 review。
 - **專案很小**：只要會長期維護，就照樣寫 spec，規則少的時候寫起來成本也最低。沒有 spec 時，追溯檢查和 spec-check 都會直接通過，卻什麼都沒檢查到。做完就丟的原型是第 0 章的 0 級，整套省略。
@@ -483,6 +483,7 @@ review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 比對 `d
 `check.sh` 的約定：
 - 一個指令跑完全部。
 - 任何一項失敗，就回傳非 0。
+- 最後跑需求追溯，前面失敗也照跑。換掉工具那一段時，保留檔案上方的 `trap` 那一行。
 - 測試結果輸出成 JUnit XML，放到 `reports/junit/`。
 - 每次執行前先清空 `reports/junit/`：留下來的舊報告，會讓已經刪掉或改成 skip 的測試繼續算數。
 

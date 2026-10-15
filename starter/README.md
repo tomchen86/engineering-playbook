@@ -6,8 +6,7 @@
 
 ```bash
 <install command>
-bash scripts/check.sh            # lint, format check, typecheck, tests
-python3 scripts/trace_check.py   # requirement trace, after check.sh
+bash scripts/check.sh            # lint, format check, typecheck, tests, requirement trace
 ```
 
 ## Where things are
