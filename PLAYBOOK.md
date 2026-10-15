@@ -262,7 +262,7 @@ Next 和 Later 的階段不開 Issue，細節留在 proposal。某個階段移�
 **什麼時候改**：
 - **只能用一家 provider**：退到「不同 session」，並由你親自看測試的 diff，補回少掉的那一層獨立性。
 - **有第二個人類加入**：打開 required approval、加上 CODEOWNERS（第 3 章）。
-- **不改變行為的改動**（錯字、文件、重構、套件更新）：跳過第 2 步，一個 session 改完、開 PR、讓 CI 跑；要不要另外開審查者的 session，由你決定。只改 `docs/specs/` 的文字、不改意思和編號時，你認可確切的 commit 後，用你的帳號執行 `git push origin <認可的 SHA>:refs/heads/spec/<分支名>` 當認可版本，不必紅燈測試和實作者 session；CI 照跑，merge 仍要你說可以。
+- **不改變行為的改動**（錯字、文件、重構、套件更新）：跳過第 2 步，一個 session 改完、開 PR、讓 CI 跑；要不要另外開審查者的 session，由你決定。只改 `docs/specs/` 的文字、不改意思和編號時，不必紅燈測試和實作者 session，你也只要同意一次：你說可以合併，就同時認可了這段文字。agent 先用你的帳號把要合併的那個 commit 推成 `spec/<分支名>` 當認可版本，再照 `skills/review-pr` 合併；CI 照跑。
 
 ---
 

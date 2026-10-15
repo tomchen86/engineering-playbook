@@ -38,7 +38,7 @@ Three roles for each issue that changes behavior: spec author, implementer, revi
 
 Specs and acceptance tests belong to the spec author. Their approved version is the branch `spec/<branch>`, named after the PR's branch; only the owner's account can push it, and review compares the PR against it.
 
-For a documentation-only PR that edits `docs/specs/` without changing requirement meanings or IDs, get the owner's approval of the exact commit, then publish it with the owner's account: `git push origin <approved SHA>:refs/heads/spec/<branch>`. No new failing tests or separate implementer session are needed; CI and merge approval still apply.
+A documentation-only PR that edits `docs/specs/` without changing requirement meanings or IDs needs no failing tests or implementer session, and one owner approval covers both the text and the merge: once the owner says to merge, publish that head as the approved version with the owner's account (`git push origin <approved SHA>:refs/heads/spec/<branch>`), then merge it as `skills/review-pr/SKILL.md` describes. CI still applies.
 
 ## Workflow
 

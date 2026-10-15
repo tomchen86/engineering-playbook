@@ -333,5 +333,18 @@ class SpecCheck(unittest.TestCase):
         self.assertIn(TEST, out)
 
 
+    def test_a_documentation_only_spec_edit_passes_once_its_head_is_published(self):
+        """One merge approval covers the text: the head is published as spec/<branch>, then checked again."""
+        git(self.repo, "switch", "-q", "-c", "docs/wording", "main")
+        head = self.commit("reword a requirement", {SPEC: R1 + "Clearer wording, same meaning.\n"})
+        code, out = self.check("docs/wording")
+        self.assertEqual(code, 1, out)
+        self.assertIn(SPEC, out)
+        git(self.repo, "push", "-q", "origin", f"{head}:refs/heads/spec/docs/wording")
+        code, out = self.check("docs/wording")
+        self.assertEqual(code, 0, out)
+        self.assertIn(f"ok    docs/wording {head} against spec/docs/wording {head}", out)
+
+
 if __name__ == "__main__":
     unittest.main()
