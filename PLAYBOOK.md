@@ -262,7 +262,7 @@ Next 和 Later 的階段不開 Issue，細節留在 proposal。某個階段移�
 **什麼時候改**：
 - **只能用一家 provider**：退到「不同 session」，並由你親自看測試的 diff，補回少掉的那一層獨立性。
 - **有第二個人類加入**：打開 required approval、加上 CODEOWNERS（第 3 章）。
-- **不改變行為的改動**（錯字、文件、重構、套件更新）：跳過第 2 步，一個 session 改完、開 PR、讓 CI 跑；要不要另外開審查者的 session，由你決定。只改 `docs/specs/` 的文字、不改意思和編號時，不必紅燈測試和實作者 session，你也只要同意一次：你說可以合併，就同時認可了這段文字。agent 先用你的帳號把要合併的那個 commit 推成 `spec/<分支名>` 當認可版本，再照 `skills/review-pr` 合併；CI 照跑。
+- **不改變行為的改動**（錯字、文件、重構、套件更新）：跳過第 2 步，一個 session 改完、開 PR、讓 CI 跑；要不要另外開審查者的 session，由你決定。改到 spec 或驗收測試、但不改它們要求的內容時（例如改寫 spec 的措辭，或升級測試框架這類機械式改寫：每個測試的案例、斷言和編號都不變），不必紅燈測試和實作者 session，你也只要同意一次：你說可以合併，就同時認可了這些改動。agent 先用你的帳號把要合併的那個 commit 推成 `spec/<分支名>` 當認可版本，再照 `skills/review-pr` 合併；CI 照跑。
 
 ---
 
@@ -304,7 +304,7 @@ review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 比對 `d
 
 有衝突就停下來：main 和 `spec/` 分支在 spec 或驗收測試上的衝突，由規格作者在 `spec/` 分支解決，再交給實作者合入；PR 更新 main 時的程式碼衝突由實作者處理。腳本不替人決定衝突的意思。
 
-沒有 `spec/` 分支的 PR，認可版本就是 main：head 不能改變這些檔案。純文字修正若涉及 `docs/specs/`，沿用第 1 章「不改變行為的改動」的做法建立認可版本。審查者先明確 fetch main，再從 `FETCH_HEAD` 讀取腳本；讀取成功才執行。驗收路徑由腳本自己從 main 的 `AGENTS.md` 讀，不經人手抄，因為 PR 改得到這兩個檔案，而少抄一個路徑不會有任何錯誤訊息。
+沒有 `spec/` 分支的 PR，認可版本就是 main：head 不能改變這些檔案。不改要求內容的 spec 或驗收測試修改（措辭、測試框架升級），沿用第 1 章「不改變行為的改動」的做法建立認可版本。審查者先明確 fetch main，再從 `FETCH_HEAD` 讀取腳本；讀取成功才執行。驗收路徑由腳本自己從 main 的 `AGENTS.md` 讀，不經人手抄，因為 PR 改得到這兩個檔案，而少抄一個路徑不會有任何錯誤訊息。
 
 腳本也擋掉幾種「其實沒比到」的情況：驗收路徑在 main、`spec/` 分支和 PR 裡都不存在（打錯字）；審查者 checkout 的不是 PR 現在的 head；名字被冒用，例如同名的 tag 或名字結尾相同的分支冒充 `origin/main` 或 `spec/` 分支，所以腳本和 skill 只用完整的 ref 名稱和 commit ID。每一種都有自我測試（`tests/test_spec_check.py`），細節在腳本的註解裡。
 
@@ -335,7 +335,7 @@ review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 比對 `d
 
 **什麼時候改**：
 - **測試分散在多個 CI job**（例如 monorepo 每個 app 一個 job）：每個 job 把 `reports/junit/` 上傳成 artifact，另外開一個 job 下載全部之後，再跑追溯檢查。
-- **審查者漏跑過 spec-check，或常有不經審查者的 PR**：把它加進 CI 當 required check，用 main 的腳本比對 PR head。要點：checkout 指定 `pull_request.head.sha` 和 `fetch-depth: 0`，否則 HEAD 對不上、`merge-base` 誤判；不能用 `if:` 跳過 draft，被跳過的 job 算通過；分支名用 `env:` 傳進 `run:`。它只擋「忘了跑」：綠燈綁在 head 上，`spec/` 分支更新後不會重跑，所以合併前仍要照 review-pr 第 3 步本機跑一次，純 spec 文字的 PR 推完 `spec/` 分支也要 rerun。
+- **審查者漏跑過 spec-check，或常有不經審查者的 PR**：把它加進 CI 當 required check，用 main 的腳本比對 PR head。要點：checkout 指定 `pull_request.head.sha` 和 `fetch-depth: 0`，否則 HEAD 對不上、`merge-base` 誤判；不能用 `if:` 跳過 draft，被跳過的 job 算通過；分支名用 `env:` 傳進 `run:`。它只擋「忘了跑」：綠燈綁在 head 上，`spec/` 分支更新後不會重跑，所以合併前仍要照 review-pr 第 3 步本機跑一次，不改要求內容的 spec 或驗收測試 PR，推完 `spec/` 分支也要 rerun。
 - **有人提議「改了程式卻沒改 docs 就讓 CI 失敗」**：預設不做。程式碼通常按技術分層（controller、service、entity），從改了哪個檔案，看不出該對應哪份 spec；重構和修 bug 大多也不用改 spec，誤報一多就沒人看了。行為改了有沒有跟著改 spec，交給 review。
 - **專案很小、規則很少**：可以先不寫 spec。沒有 spec 時，追溯檢查會直接通過。
 

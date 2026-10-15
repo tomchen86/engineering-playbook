@@ -354,18 +354,20 @@ class SpecCheck(unittest.TestCase):
         self.assertIn(TEST, out)
 
 
-    def test_a_documentation_only_spec_edit_passes_once_its_head_is_published(self):
-        """One merge approval covers the text: the head is published as spec/<branch>, then checked again."""
-        git(self.repo, "switch", "-q", "-c", "docs/wording", "main")
-        head = self.commit("reword a requirement", {SPEC: R1 + "Clearer wording, same meaning.\n"})
-        code, out = self.check("docs/wording")
-        self.assertEqual(code, 1, out)
-        self.assertIn(SPEC, out)
-        git(self.repo, "push", "-q", "origin", f"{head}:refs/heads/spec/docs/wording")
-        code, out = self.check("docs/wording")
-        self.assertEqual(code, 0, out)
-        self.assertIn(f"ok    docs/wording {head} against spec/docs/wording {head}", out)
-
+    def test_a_change_that_keeps_the_requirements_passes_once_its_head_is_published(self):
+        """One merge approval covers spec wording or a mechanical test edit: the head is published as spec/<branch>."""
+        for branch, files in (("docs/wording", {SPEC: R1 + "Clearer wording, same meaning.\n"}),
+                              ("deps/test-framework", {TEST: "case 1, in the new framework's syntax\n"})):
+            with self.subTest(branch=branch):
+                git(self.repo, "switch", "-q", "-c", branch, "main")
+                head = self.commit("keep the requirements", files)
+                code, out = self.check(branch)
+                self.assertEqual(code, 1, out)
+                self.assertIn(next(iter(files)), out)
+                git(self.repo, "push", "-q", "origin", f"{head}:refs/heads/spec/{branch}")
+                code, out = self.check(branch)
+                self.assertEqual(code, 0, out)
+                self.assertIn(f"ok    {branch} {head} against spec/{branch} {head}", out)
 
 if __name__ == "__main__":
     unittest.main()
