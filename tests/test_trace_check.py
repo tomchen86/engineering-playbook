@@ -127,7 +127,7 @@ class CheckEntry(unittest.TestCase):
 
     PLACEHOLDER = 'echo "scripts/check.sh is not configured yet: pick your stack and replace this block." >&2\nexit 1\n'
 
-    def run_check(self, stack_status, testcase):
+    def run_check(self, stack_status, testcase, stale=None):
         with tempfile.TemporaryDirectory() as tmp:
             repo = Path(tmp)
             (repo / "scripts").mkdir()
@@ -138,6 +138,9 @@ class CheckEntry(unittest.TestCase):
             (repo / "scripts/check.sh").write_text(check.replace(self.PLACEHOLDER, stack), encoding="utf-8")
             spec = repo / "docs/specs/ledger/spec.md"
             spec.parent.mkdir(parents=True)
+            if stale:  # left over from an earlier run
+                (repo / "reports/junit").mkdir(parents=True)
+                (repo / "reports/junit/old.xml").write_text(f"<testsuite>{stale}</testsuite>", encoding="utf-8")
             spec.write_text("### Requirement: LEDGER-1.1 Percentage split sums to 100\n", encoding="utf-8")
             result = subprocess.run(["bash", "scripts/check.sh"], cwd=repo, capture_output=True, text=True)
             return result.returncode, result.stdout + result.stderr
@@ -150,6 +153,18 @@ class CheckEntry(unittest.TestCase):
 
     def test_a_failing_trace_fails_the_check_even_when_the_tests_pass(self):
         code, out = self.run_check(0, '<testcase name="unrelated"/>')
+        self.assertEqual(code, 1, out)
+        self.assertIn("untested:\n  LEDGER-1.1", out)
+
+    def test_a_failing_step_fails_the_check_even_when_the_trace_passes(self):
+        """For example lint fails while every requirement's test passes: the trace must not mask it."""
+        code, out = self.run_check(1, '<testcase name="[LEDGER-1.1] rejects 99"/>')
+        self.assertEqual(code, 1, out)
+        self.assertNotIn("untested", out)
+
+    def test_a_stale_passing_report_cannot_hide_a_test_skipped_this_run(self):
+        code, out = self.run_check(0, '<testcase name="[LEDGER-1.1] rejects 99"><skipped/></testcase>',
+                                   stale='<testcase name="[LEDGER-1.1] rejects 99"/>')
         self.assertEqual(code, 1, out)
         self.assertIn("untested:\n  LEDGER-1.1", out)
 
