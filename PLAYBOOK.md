@@ -300,7 +300,7 @@ review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 比對 `d
 
 認可結果在這些路徑上沒有衝突，且和 head 完全相同，才印出 `ok`。衝突只在程式碼時不擋比對，例如規格作者補的 stub 和 main 改到同一個檔案：這種衝突由實作者更新 PR 時解決。main 上其他 PR 的獨立改動會出現在兩邊，不必每合進一個 PR，就請規格作者更新其他所有認可版本。實作者更新 PR 時弄丟別人的 spec 或測試，head 就會跟認可結果不同。
 
-合併交給 Git 內建的 `merge-tree`，不修改 index 或 worktree。用 `--attr-source=<main SHA>` 固定讀 main 的 attributes，避免 PR 的 `.gitattributes` 改掉認可結果的計算；這需要 [Git 2.43 以上](https://git-scm.com/docs/git/2.43.0)。再用 `ls-tree` 列出兩邊的路徑、模式、類型、內容 ID 比對，包含 submodule 的 commit，不受 `.gitmodules` 的 `ignore` 影響。路徑一律按字面解讀，不接受 Git pathspec 的排除語法。
+合併交給 Git 內建的 `merge-tree`，不修改 index 或 worktree。用 `--attr-source=<main SHA>` 固定讀 main 的 attributes，避免 PR 的 `.gitattributes` 改掉認可結果的計算；這需要 [Git 2.43 以上](https://git-scm.com/docs/git/2.43.0)。再用 `ls-tree` 列出兩邊的路徑、模式、類型、內容 ID 比對，包含 submodule 的 commit，不受 `.gitmodules` 的 `ignore` 影響。路徑一律按字面解讀：含空白的路徑仍是一個路徑，萬用字元不展開，也不接受 Git pathspec 的排除語法。
 
 有衝突就停下來：main 和 `spec/` 分支在 spec 或驗收測試上的衝突，由規格作者在 `spec/` 分支解決，再交給實作者合入；PR 更新 main 時的程式碼衝突由實作者處理。腳本不替人決定衝突的意思。
 

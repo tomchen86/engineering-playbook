@@ -314,6 +314,25 @@ class SpecCheck(unittest.TestCase):
         self.assertEqual(code, 1, out)
         self.assertIn("FLAG  'tests/acceptance/*.test' is on neither", out)
 
+    def test_a_path_with_a_space_is_compared_whole(self):
+        """Split at the space, 'e2e' and 'flows' would be compared instead, and the edit would pass."""
+        self.on_main({"AGENTS.md": agents("tests/acceptance", "e2e flows"), "e2e flows/flow.test": "step 1\n",
+                      "e2e/readme": "x\n", "flows/readme": "y\n"})
+        git(self.repo, "merge", "-q", "--no-edit", "main")
+        self.assertEqual(self.check()[0], 0)
+        self.commit("implementer", {"e2e flows/flow.test": "step 1\nreturn\n"})
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("e2e flows/flow.test", out)
+
+    def test_a_path_with_a_space_does_not_widen_into_its_pieces(self):
+        """Split at the space, 'tests' would also compare the implementer's own tests and flag an untouched PR."""
+        self.on_main({"AGENTS.md": agents("tests/acceptance", "tests/acceptance tests"),
+                      "tests/acceptance tests/flow.test": "step 1\n"})
+        git(self.repo, "merge", "-q", "--no-edit", "main")
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
+
     def test_paths_come_from_main_and_every_listed_path_counts(self):
         """A PR cannot narrow the comparison by editing its own AGENTS.md."""
         self.on_main({"AGENTS.md": agents("tests/acceptance", "e2e"), "e2e/flow.test": "step 1\n"})

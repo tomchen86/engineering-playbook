@@ -39,10 +39,10 @@ git fetch -q --no-tags origin "$main" "$base" "$head"
 # The acceptance test paths come from main's AGENTS.md, since the PR can edit its own copy,
 # and a path left out by hand would simply not be compared.
 acceptance=$(git show "$main:AGENTS.md" | sed -n 's/^- Acceptance tests: //p' | grep -o '`[^`]*`' | tr -d '`' || true)
-# Split on whitespace, but never glob: a pattern would expand against the PR head's own
-# files, so a test the PR deleted would drop out of the comparison.
-set -f
-set -- $acceptance
+# One path per pair of backticks, kept whole: splitting at a space, or expanding a glob against
+# the PR head's own files, could leave the listed path out of the comparison without an error.
+set --
+while IFS= read -r path; do [ -z "$path" ] || set -- "$@" "$path"; done <<<"$acceptance"
 [ $# -ge 1 ] || { echo "FLAG  AGENTS.md on main has no '- Acceptance tests:' line listing paths in backticks"; exit 1; }
 paths=(docs/specs "$@")
 
