@@ -8,6 +8,15 @@
 | [`starter/`](starter/) | 示範性的初始 repo，開新專案時整包複製 |
 | [`tests/`](tests/) | `trace_check.py`、`spec-check.sh` 和 starter 設定的自我測試 |
 
+## 平常你只做兩件事
+
+決定要做什麼（開 Issue、排 roadmap）之後，每個會改變行為的功能，你只要做兩個決定：
+
+1. **認可 spec**：規格作者開好 draft PR 後，看裡面 spec 的 diff，說「可以」。
+2. **同意合併**：看完審查者的回報，說「可以合併」。
+
+不改變行為的 PR（錯字、文件、重構、套件更新）只有第 2 件。其餘的 Git 操作，包括建立 `spec/` 分支、同步、比對和合併後清理，都由 agent 照 `skills/` 執行。有標 `(manual)` 的 requirement 時，發版前還要照清單在實機上驗收（第 1 章）。
+
 ## 開新專案
 
 1. 複製 starter，建立 git repo：
