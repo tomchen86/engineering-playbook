@@ -17,7 +17,7 @@
 - Structure (fields, types, API shapes, database constraints): the code, or files generated from it. Never restate it in prose.
 - Behavior: `docs/specs/<capability>/spec.md`, one `### Requirement:` per rule.
 - Acceptance tests: `tests/acceptance`
-  The tests that cite requirement IDs, as literal paths from the repo root; `scripts/spec-check.sh` reads this line from main's copy of this file. Change it only if your test runners cannot find tests there, for example one directory per app in a monorepo. Keep a listed directory tracked with a `.gitkeep` when empty. All other tests live elsewhere and cite no IDs.
+  The tests that cite requirement IDs, as literal paths from the repo root; `scripts/spec-check.sh` reads this line from main's copy of this file. Keep a listed directory tracked with a `.gitkeep` when empty. All other tests live elsewhere and cite no IDs.
 - Reasons: `docs/adr/`. Overview: `docs/architecture.md`.
 - Direction: `docs/roadmap.md`. The owner decides it; do not edit it unless asked.
 - Future plans: `docs/proposals/`. An accepted proposal is decided direction for work not started yet: not current behavior, not a work order.
@@ -38,7 +38,7 @@ Three roles for each issue that changes behavior: spec author, implementer, revi
 
 Specs and acceptance tests belong to the spec author. Their approved version is the branch `spec/<branch>`, named after the PR's branch; only the owner's account can push it, and review compares the PR against it.
 
-A PR that changes `docs/specs/` or the acceptance tests without changing what they require needs no failing tests or implementer session: rewording a spec, or a mechanical test edit such as a test-framework upgrade, where every test keeps its cases, assertions, and IDs. One owner approval covers both those changes and the merge: once the owner says to merge, publish that head as the approved version with the owner's account (`git push origin <approved SHA>:refs/heads/spec/<branch>`), then merge it as `skills/review-pr/SKILL.md` describes. CI still applies.
+A PR that changes `docs/specs/` or the acceptance tests without changing what they require needs no failing tests or implementer session: rewording a spec, or a mechanical test edit such as a test-framework upgrade, where every test keeps its cases, assertions, and IDs. The owner's merge approval also approves those changes; merge it as `skills/review-pr/SKILL.md` describes.
 
 ## Workflow
 
@@ -48,7 +48,7 @@ Once per phase:
 1. A planning discussion ends, or a phase not started needs a new plan: `skills/record-plan/SKILL.md`.
 2. A phase moves to Now: `skills/start-phase/SKILL.md`. Its milestone is done: the same skill, Closing a phase.
 
-Once per issue that changes behavior. Refactors, typos, docs, and dependency bumps skip straight to a PR.
+Once per issue that changes behavior:
 1. Spec author: `skills/write-spec/SKILL.md`. Spec and failing tests first, then a draft PR. The owner approves the spec before any implementation starts.
 2. Implementer: Implementing, below. Push to the same branch until the tests pass, then mark the PR ready.
 3. Reviewer: `skills/review-pr/SKILL.md`. Review, report, and merge only when the owner says so.
@@ -56,8 +56,8 @@ Once per issue that changes behavior. Refactors, typos, docs, and dependency bum
 ## Implementing
 
 - Start only when `spec/<branch>` exists on the remote. Fetch with `git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main +refs/heads/spec/<branch>:refs/remotes/origin/spec/<branch>`; proceed only if it succeeds. Your work order is `git diff refs/remotes/origin/main...refs/remotes/origin/spec/<branch>`.
-- Make the failing tests pass. Never edit `docs/specs/` or the acceptance tests, not even to add a line. Clean merges of main's changes are allowed; review compares your head with what main plus the approved spec would produce. Put your own tests elsewhere, without requirement IDs. If a test looks wrong, stop and explain why.
-- The spec author's updates arrive on `spec/<branch>`: take them with `git fetch --no-tags origin refs/heads/spec/<branch> && git merge FETCH_HEAD`. Never resolve a conflict in specs or acceptance tests yourself: the spec author resolves it on `spec/<branch>`, then you merge that update. Independent changes on main do not require a spec-branch refresh.
+- Make the failing tests pass. Never edit `docs/specs/` or the acceptance tests, not even to add a line. Clean merges of main's changes are allowed. Put your own tests elsewhere, without requirement IDs. If a test looks wrong, stop and explain why.
+- The spec author's updates arrive on `spec/<branch>`: take them with `git fetch --no-tags origin refs/heads/spec/<branch> && git merge FETCH_HEAD`. Never resolve a conflict in specs or acceptance tests yourself: the spec author resolves it on `spec/<branch>`, then you merge that update.
 - Behavior the spec does not cover: if a user or another component would notice the choice (for example, who gets the remainder of an uneven split), stop and ask the spec author in a PR comment (`gh pr comment <N> --body "<question>"`), and meanwhile work on the parts that do not depend on the answer. Decide internal details yourself.
 - When the tests pass: fill the PR's What changed and Verification sections, then mark it ready for review with `gh pr ready <N>`.
 - Never merge, and never push to the default branch.

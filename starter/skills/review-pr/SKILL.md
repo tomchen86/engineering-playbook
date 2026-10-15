@@ -11,20 +11,20 @@ Take one PR at a time through the final stretch (update, check, report, merge). 
 
 ## Checklist
 
-1. The PR is marked ready (not a draft) and up to date with main. If it is behind, run `gh pr update-branch <N>` and refresh this worktree with `gh pr checkout <N> --detach`; send conflicts to the owners described in step 3. Wait for CI on the updated head: `gh pr checks <N> --watch --fail-fast`.
+1. The PR is marked ready (not a draft) and up to date with main. If it is behind, run `gh pr update-branch <N>` and refresh this worktree with `gh pr checkout <N> --detach`; send conflicts in specs or acceptance tests to the spec author, and code conflicts to the implementer. Wait for CI on the updated head: `gh pr checks <N> --watch --fail-fast`.
 2. The description has `Closes #<N>` or `No issue: <reason>`, and every template section is filled.
-3. The specs and acceptance tests are the ones the owner approved. With Git 2.43+, inside the PR's worktree, run main's copy of the check; it reads the acceptance test paths from main's `AGENTS.md` itself. Never take the script from the worktree's own files: the PR can edit them.
+3. The specs and acceptance tests are the ones the owner approved. With Git 2.43+, inside the PR's worktree, run main's copy of the check. Never take the script from the worktree's own files: the PR can edit them.
 
    ```bash
    f=$(mktemp) && git fetch -q --no-tags origin refs/heads/main && git show FETCH_HEAD:scripts/spec-check.sh > "$f" && bash "$f" <branch>
    ```
 
-   It requires the head to contain main (step 1), virtually merges current main with `spec/<branch>` using main's attributes, then compares that result's spec and acceptance-test entries with the head's. Independent changes on main merge automatically; a PR without a spec branch must leave these files as main has them. It passes only when it exits successfully and prints an `ok` line; keep that line, including main's SHA, for your report. Differences or conflicts in specs/tests go to the spec author; code conflicts from updating the branch go to the implementer. A match verifies the files, not that the tests make sense or ran: that is step 4 and CI. A PR that changes specs or acceptance tests without changing what they require (`AGENTS.md`, Roles) has no `spec/<branch>` until the owner approves the merge, so this step flags those files. List them in your report as changes the owner's merge approval will also approve, and confirm that every acceptance test kept its cases, assertions, and IDs.
+   It passes only when it exits successfully and prints an `ok` line; keep that line, including main's SHA, for your report. Differences in specs or acceptance tests go to the spec author. A PR that changes specs or acceptance tests without changing what they require (`AGENTS.md`, Roles) has no `spec/<branch>` until the owner approves the merge, so this step flags those files. List them in your report as changes the owner's merge approval will also approve, and confirm that every acceptance test kept its cases, assertions, and IDs.
 4. Spec, code, and tests say the same thing, and every test that cites a requirement actually checks it. No test outside the acceptance test paths cites an ID: the implementer's own tests are not evidence for a requirement.
 5. "Rules discovered during implementation": each must already be in the spec with a test, added by the spec author before it was implemented. Send back any behavior a user or another component would notice that exists only in the code.
-6. Traced coverage (its command is in `AGENTS.md`): run only the tests that cite IDs, with coverage on, and list the new branches none of them executes. Each is a missing requirement, dead code, or defensive code. Read function and branch coverage; line coverage cannot see an untaken branch inside a line that ran. For text-only documentation changes that do not affect code, tests, or how they run, report `N/A` with a reason instead. Refactors and dependency updates do not qualify for this exception.
+6. Traced coverage (its command is in `AGENTS.md`): run only the tests that cite IDs, with coverage on, and list the new branches none of them executes. Each is a missing requirement, dead code, or defensive code. Read function and branch coverage, not line coverage. For text-only documentation changes that do not affect code, tests, or how they run, report `N/A` with a reason instead. Refactors and dependency updates do not qualify for this exception.
 7. Read every change to `AGENTS.md`, `CLAUDE.md`, `skills/`, `.github/`, `scripts/`, test configuration, and dependency files line by line. The first three are the instructions for every later session.
-8. Report to the owner: what changed, the risks, the reviewed head SHA, and the spec SHA step 3 compared it with. Cite code with links pinned to that SHA, so they keep pointing at what you reviewed: `gh browse <path>:<line> --commit <sha> --no-browser`.
+8. Report to the owner: what changed, the risks, the reviewed head SHA, and the spec SHA step 3 compared it with. Cite code with links pinned to that SHA: `gh browse <path>:<line> --commit <sha> --no-browser`.
 
 ## Merge
 
@@ -34,6 +34,6 @@ Only when the owner says so. If the PR has fallen behind main, update it as in s
 gh pr merge <N> --squash --admin --match-head-commit <reviewed SHA>
 ```
 
-`--admin` is required: only the owner may update main (the `main-merge` ruleset), and `gh` will not use that bypass without it. It is also safe: nobody can bypass `main-integrity`, so `--admin` cannot skip a failing `check` or merge a branch behind main. If the head moved after the review, the merge fails; review the new commits first.
+`--admin` is required, since only the owner may update main, and safe: it cannot skip a failing `check` or merge a branch behind main. If the head moved after the review, the merge fails; review the new commits first.
 
 Afterwards, delete the spec branch if there was one (`git push origin --delete refs/heads/spec/<branch>`), and remove the review worktree: `git worktree remove ../review-<N>`. When a PR is closed without merging, delete its spec branch the same way.
