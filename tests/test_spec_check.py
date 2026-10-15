@@ -77,16 +77,16 @@ class SpecCheck(unittest.TestCase):
         git(self.repo, "push", "-q", "origin", "HEAD:refs/heads/spec/codex/feat")
         git(self.repo, "switch", "-q", "codex/feat")
 
-    def check(self, branch="codex/feat", checkout=True):
+    def check(self, branch="codex/feat", checkout=True, cwd="docs"):
         """Push the branch, check its head out in the reviewer's clone, and run the script there."""
         git(self.repo, "push", "-q", "-f", "origin", branch)
         review = self.tmp / "review"
         if checkout:
             git(review, "fetch", "-q", "origin", f"+refs/heads/{branch}:refs/remotes/origin/{branch}")
             git(review, "checkout", "-q", "--detach", f"refs/remotes/origin/{branch}")
-        # Run from a subdirectory: the paths must still be read from the repo root.
+        # By default run from a subdirectory: the paths must still be read from the repo root.
         result = subprocess.run(["bash", str(SCRIPT), branch],
-                                cwd=review / "docs", capture_output=True, text=True)
+                                cwd=review / cwd, capture_output=True, text=True)
         return result.returncode, result.stdout + result.stderr
 
     def test_untouched_specs_and_acceptance_tests_pass_and_both_shas_are_reported(self):
@@ -289,6 +289,16 @@ class SpecCheck(unittest.TestCase):
         code, out = self.check()
         self.assertNotEqual(code, 0, out)
         self.assertNotIn("ok    ", out)
+
+    def test_a_glob_in_the_paths_is_taken_literally(self):
+        """Expanded by the shell in the worktree root, it would list only the files the PR still has."""
+        self.on_main({"AGENTS.md": agents("tests/acceptance/*.test"), **SYNC})
+        git(self.repo, "merge", "-q", "--no-edit", "main")
+        git(self.repo, "rm", "-q", "tests/acceptance/sync.test")
+        git(self.repo, "commit", "-q", "-m", "implementer deletes an approved test")
+        code, out = self.check(cwd=".")
+        self.assertEqual(code, 1, out)
+        self.assertIn("FLAG  'tests/acceptance/*.test' is on neither", out)
 
     def test_paths_come_from_main_and_every_listed_path_counts(self):
         """A PR cannot narrow the comparison by editing its own AGENTS.md."""

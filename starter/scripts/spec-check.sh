@@ -37,6 +37,9 @@ git fetch -q --no-tags origin "$main" "$base" "$head"
 # The acceptance test paths come from main's AGENTS.md, since the PR can edit its own copy,
 # and a path left out by hand would simply not be compared.
 acceptance=$(git show "$main:AGENTS.md" | sed -n 's/^- Acceptance tests: //p' | grep -o '`[^`]*`' | tr -d '`' || true)
+# Split on whitespace, but never glob: a pattern would expand against the PR head's own
+# files, so a test the PR deleted would drop out of the comparison.
+set -f
 set -- $acceptance
 [ $# -ge 1 ] || { echo "FLAG  AGENTS.md on main has no '- Acceptance tests:' line listing paths in backticks"; exit 1; }
 paths=(docs/specs "$@")
@@ -62,6 +65,7 @@ approved_tree() {  # main merged with the approved commit, using main's attribut
 }
 
 # A path that exists nowhere, such as a mistyped one, would compare nothing and pass.
+# An approved removal of the last test still passes: main still has the path.
 for path in "$@"; do
   [ -n "$(for commit in "$main" "$base" "$head"; do git --literal-pathspecs ls-tree --full-tree "$commit" -- "$path"; done)" ] ||
     { echo "FLAG  '$path' is on neither main, $approved, nor $branch: fix the Acceptance tests line in AGENTS.md on main"; exit 1; }
