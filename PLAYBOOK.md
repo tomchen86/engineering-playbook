@@ -159,7 +159,7 @@ Issue 描述「這次要做什麼」，做完就關閉。spec 描述「系統現
    - **你的檢查點**：看 spec 的 diff，問自己「這就是我要的行為嗎？」這是整個流程裡改方向最便宜的時候，實作一行都還沒寫。
    - 你同意之後，規格作者把你看過的那個 commit 推到 `spec/<分支名>`。這種分支只有你的帳號推得動（第 3 章），它是 spec 和驗收測試的認可版本：實作者看到它才開工，review 拿 PR 跟它比對（第 2 章第 3 點）。
 3. **實作**（實作者，照 `AGENTS.md` 的 Implementing）：`spec/<分支名>` 存在才開工。拿到的是分支、spec 的 diff 和紅燈測試，不是 Issue 的文字。commit 推到同一個分支，PR 會跟著更新。不改 spec 和驗收測試，連新增一行也不行；自己的測試放在別的目錄，不引用編號。spec 沒講到的行為分兩種：使用者或其他元件看得到的（例如除不盡的錢歸誰），先停下來在 PR 留言問規格作者，同時繼續做不受影響的部分；規格作者把 requirement 和紅燈測試補在 `spec/<分支名>` 上，實作者 merge 進來再照著做。只影響內部的細節，實作者自己決定。測試全綠後，填好 PR 其餘的段落，執行 `gh pr ready <N>` 把 draft 改成 ready。
-4. **Review**（審查者，`skills/review-pr`）：PR 改成 ready 之後才開始，第 2 章解釋清單每一項的理由。做完回報你：改了什麼、有什麼風險、看過的 commit SHA，以及比對時用的 spec SHA。
+4. **Review**（審查者，`skills/review-pr`）：PR 改成 ready 之後才開始，第 2 章解釋清單每一項的理由。做完回報你：改了什麼、有什麼風險、看過的 commit SHA，以及比對時用的 spec SHA。一次只讓一個 PR 走完最後這段（跟上 main、檢查、回報、merge）：每合併一個 PR，其他 PR 都會落後 main，合併前做完的 review 得在更新後的 head 上重做。其他 PR 可以繼續實作。
 5. **Merge**：你說可以，審查者執行 `gh pr merge <N> --squash --admin --match-head-commit <SHA>`（`--admin` 為什麼必要、為什麼安全，見第 3 章），再刪掉 `spec/<分支名>`：它不是 PR 的分支，GitHub 不會自動刪。PR 沒合併就關掉時也一樣。
 6. **自動收尾**：因為有 `Closes #N`，Issue 自動關閉；有用 Project 的話，上面的項目會自動移到 Done。
 7. **手動驗收**：有 `(manual)` requirement 時，照追溯檢查列出的清單，在實機上驗收。沒通過就開新的 Issue。

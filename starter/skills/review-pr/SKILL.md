@@ -7,6 +7,8 @@ description: Review a pull request before merge, and merge only the reviewed com
 
 Check the PR out in its own worktree so your other work stays untouched: `git worktree add --detach ../review-<N>`, then run `gh pr checkout <N> --detach` inside it.
 
+Take one PR at a time through the final stretch (update, check, report, merge). Each merge leaves every other open PR behind main, and a review finished before that merge has to be redone on the updated head. Other PRs can keep being implemented meanwhile.
+
 ## Checklist
 
 1. The PR is marked ready (not a draft) and up to date with main. If it is behind, run `gh pr update-branch <N>` and refresh this worktree with `gh pr checkout <N> --detach`; send conflicts to the owners described in step 3. Wait for CI on the updated head: `gh pr checks <N> --watch --fail-fast`.
