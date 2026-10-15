@@ -37,6 +37,8 @@ Three roles for each issue that changes behavior: spec author, implementer, revi
 
 Specs and acceptance tests belong to the spec author. Their approved version is the branch `spec/<branch>`, named after the PR's branch; only the owner's account can push it, and review compares the PR against it.
 
+For a documentation-only PR that edits `docs/specs/` without changing requirement meanings or IDs, get the owner's approval of the exact commit, then publish it with the owner's account: `git push origin <approved SHA>:refs/heads/spec/<branch>`. No new failing tests or separate implementer session are needed; CI and merge approval still apply.
+
 ## Workflow
 
 Step-by-step procedures live in `skills/`. Read the skill before starting its step.
@@ -53,7 +55,7 @@ Once per issue that changes behavior. Refactors, typos, docs, and dependency bum
 ## Implementing
 
 - Start only when `spec/<branch>` exists on the remote. Fetch with `git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main +refs/heads/spec/<branch>:refs/remotes/origin/spec/<branch>`; proceed only if it succeeds. Your work order is `git diff refs/remotes/origin/main...refs/remotes/origin/spec/<branch>`.
-- Make the failing tests pass. Never edit `docs/specs/` or the acceptance tests, not even to add a line. Clean merges of main's changes are allowed; review compares the merged result with what main plus the approved spec would produce. Put your own tests elsewhere, without requirement IDs. If a test looks wrong, stop and explain why.
+- Make the failing tests pass. Never edit `docs/specs/` or the acceptance tests, not even to add a line. Clean merges of main's changes are allowed; review compares your head with what main plus the approved spec would produce. Put your own tests elsewhere, without requirement IDs. If a test looks wrong, stop and explain why.
 - The spec author's updates arrive on `spec/<branch>`: take them with `git fetch --no-tags origin refs/heads/spec/<branch> && git merge FETCH_HEAD`. Never resolve a conflict in specs or acceptance tests yourself: the spec author resolves it on `spec/<branch>`, then you merge that update. Independent changes on main do not require a spec-branch refresh.
 - Behavior the spec does not cover: if a user or another component would notice the choice (for example, who gets the remainder of an uneven split), stop and ask the spec author in a PR comment (`gh pr comment <N> --body "<question>"`), and meanwhile work on the parts that do not depend on the answer. Decide internal details yourself.
 - When the tests pass: fill the PR's What changed and Verification sections, then mark it ready for review with `gh pr ready <N>`.

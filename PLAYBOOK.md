@@ -263,6 +263,8 @@ Next 和 Later 的階段不開 Issue，細節留在 proposal。某個階段移�
 - **有第二個人類加入**：打開 required approval、加上 CODEOWNERS（第 3 章）。
 - **不改變行為的改動**（錯字、文件、重構、套件更新）：跳過第 2 步，一個 session 改完、開 PR、讓 CI 跑；要不要另外開審查者的 session，由你決定。
 
+純文件 PR 若修改 `docs/specs/` 的文字，但不改需求意思或編號，你核准確切 commit 後，用你的帳號執行 `git push origin <核准的 SHA>:refs/heads/spec/<分支名>`，作為比對基準。不必新增紅燈測試或另開實作者 session；CI 和 merge 核准照常。
+
 ---
 
 ## 第 2 章　驗證
@@ -292,18 +294,18 @@ Next 和 Later 的階段不開 Issue，細節留在 proposal。某個階段移�
 - **用路徑分所有權。** 驗收測試放在固定的目錄，只有規格作者能改；實作者自己的測試放在別的目錄，不引用編號，所以不會被追溯檢查當成證據。實作者可以乾淨合入 main 上已接受的改動，但自己對 `docs/specs/` 和驗收測試的任何修改都交回規格作者。只新增一行也算：在測試開頭加一行 `return`，或新增一個把受測函式 mock 掉的設定檔，都是「只新增」。
 - **一份實作者推不動的基準。** 你同意 spec 之後，規格作者把那個 commit 推到 `spec/<分支名>`，ruleset 讓這種分支只有你的帳號能建立、更新、刪除（第 3 章）。之後要補 spec，規格作者也是推到這個分支，實作者再 merge 進自己的分支。
 
-review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 做兩次虛擬合併，再比對 `docs/specs/` 和驗收測試的目錄：
+review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 比對 `docs/specs/` 和驗收測試的目錄：
 
-- **認可結果**：main 合入 `spec/<分支名>`。
-- **PR 結果**：同一個 main 合入 PR 的 head。
+- **認可結果**：main 合入 `spec/<分支名>`。這次合併只牽涉你的帳號才推得動的兩個 ref，實作者插不了手。
+- **PR 結果**：PR head 本身的檔案。`main-integrity` 要求 PR 跟上 main 才能合併，所以 head 已經包含 main，合進 main 的就是 head 的樹，不必推算；PR 落後 main 時，腳本停下來要你先 `gh pr update-branch`。
 
-兩次都能合併，且這些路徑的結果完全相同，才印出 `ok`。main 上其他 PR 的獨立改動會自動包含在兩邊，不必每合進一個 PR，就請規格作者更新其他所有基準。實作者若合併 main 時弄丟別人的 spec 或測試，PR 結果就會跟認可結果不同。即使兩個分支上的檔案目前相同，合併歷史不同造成的結果差異也會被看見。
+認可結果能合併，且這些路徑和 head 完全相同，才印出 `ok`。main 上其他 PR 的獨立改動會出現在兩邊，不必每合進一個 PR，就請規格作者更新其他所有基準。實作者更新 PR 時弄丟別人的 spec 或測試，head 就會跟認可結果不同。
 
-合併交給 Git 內建的 `merge-tree`，不修改 index 或 worktree。用 `--attr-source=<main SHA>` 固定讀 main 的 attributes，避免 PR 的 `.gitattributes` 改掉認可結果的計算；這需要 [Git 2.43 以上](https://git-scm.com/docs/git/2.43.0)。再用 `ls-tree` 列出兩個結果的路徑、模式、類型、內容 ID 比對，包含 submodule 的 commit，不受 `.gitmodules` 的 `ignore` 影響。路徑一律按字面解讀，不接受 Git pathspec 的排除語法。
+合併交給 Git 內建的 `merge-tree`，不修改 index 或 worktree。用 `--attr-source=<main SHA>` 固定讀 main 的 attributes，避免 PR 的 `.gitattributes` 改掉認可結果的計算；這需要 [Git 2.43 以上](https://git-scm.com/docs/git/2.43.0)。再用 `ls-tree` 列出兩邊的路徑、模式、類型、內容 ID 比對，包含 submodule 的 commit，不受 `.gitmodules` 的 `ignore` 影響。路徑一律按字面解讀，不接受 Git pathspec 的排除語法。
 
-有衝突就停下來：spec 或驗收測試的衝突由規格作者在 `spec/` 分支解決，再交給實作者合入；程式碼衝突由實作者處理。腳本不替人決定衝突的意思。
+有衝突就停下來：main 和 `spec/` 分支在 spec 或驗收測試上的衝突，由規格作者在 `spec/` 分支解決，再交給實作者合入；PR 更新 main 時的程式碼衝突由實作者處理。腳本不替人決定衝突的意思。
 
-沒有 `spec/` 分支的 PR（重構、文件、套件更新）沒有任何東西被認可過，基準就是 main：合併後不能改變這些檔案。審查者先明確 fetch main，再從 `FETCH_HEAD` 讀取腳本；讀取成功才執行。路徑也從 main 上的 `AGENTS.md` 讀，因為 PR 改得到這兩個檔案。
+沒有 `spec/` 分支的 PR，基準就是 main：合併後不能改變這些檔案。純文字修正若涉及 `docs/specs/`，沿用第 1 章的簡短核准方式建立基準。審查者先明確 fetch main，再從 `FETCH_HEAD` 讀取腳本；讀取成功才執行。路徑也從 main 上的 `AGENTS.md` 讀，因為 PR 改得到這兩個檔案。
 
 腳本還會擋掉幾種「其實沒比到」的情況，不讓它們默默通過：
 
@@ -313,7 +315,7 @@ review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 做兩次
 
 以上每一種情況都有自我測試（`tests/test_spec_check.py`）。
 
-這個比對證明的是：在檢查當下的 main 上，用 main 的合併設定計算，PR 的 spec 和驗收測試結果跟認可結果一致。合併前再跑一次，並確認 PR head 和 spec SHA 沒變；`ok` 也列出這次用的 main SHA。自我測試比對過本機 `git merge --squash` 的結果，這一版尚未對 GitHub 的遠端 squash 重跑。它不證明你真的同意過（規格作者用的也是你的帳號），不證明測試合理、有跑，也不證明程式符合 spec；這些靠第 1 章第 2 步你的檢查點、CI、追溯檢查和 review。實作者拿到你的憑證時，這道保護也會失效（附錄 C 第 5 點）。
+這個比對證明的是：在檢查當下的 main 上，PR head 的 spec 和驗收測試，跟用 main 的合併設定算出的認可結果一致。合併前再跑一次，並確認 PR head 和 spec SHA 沒變；`ok` 也列出這次用的 main SHA。它不證明你真的同意過（規格作者用的也是你的帳號），不證明測試合理、有跑，也不證明程式符合 spec；這些靠第 1 章第 2 步你的檢查點、CI、追溯檢查和 review。實作者拿到你的憑證時，這道保護也會失效（附錄 C 第 5 點）。
 
 它要防的是日常會發生的事：實作者順手改了測試、合併時弄丟東西、審查者打錯路徑。刻意對付審查流程的實作者不在它的範圍內，例如改掉 CI 設定讓測試不跑；那要靠審查者逐行讀設定檔的改動（`skills/review-pr` 第 7 步）和第 3 章的隔離。
 
@@ -327,6 +329,8 @@ review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 做兩次
 | 4 review | 讀 diff | 前三層漏掉的 | 審查者也沒看出來的 |
 
 第 3 層的做法依語言而定：用測試工具的「依名稱篩選」，只跑引用編號的測試（例如 jest 和 vitest 的 `-t '[A-Z]+-[0-9]+\.[0-9]+'`），同時打開覆蓋率，再跟 PR 的 diff 比對。要看 **function 和 branch** 覆蓋率：line 覆蓋率看不到同一行裡沒走到的分支，例如寫在一行裡的 `if`、`?:`、`??`。
+
+只改文件文字，且不影響程式、測試及其執行方式時，追溯覆蓋率可註明 `N/A` 並說明原因；重構和套件更新不適用這個例外。
 
 最有效的預防在更前面：第 1 章第 2 步寫紅燈測試時，先把邊界情況寫進去。實作者需要停下來問的次數越少，交接就越順。
 
@@ -423,7 +427,7 @@ review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 做兩次
 | 這條規則有測試 | 測試檔裡寫了編號 | 追溯檢查讀到的 JUnit 報告：跑過而且通過 |
 | 照規則改了 | PR 描述寫的 | diff |
 | 合進去的就是看過的版本 | 「我看過了」 | `--match-head-commit` |
-| spec 和驗收測試符合認可版本 | PR 描述寫的，任何人都改得到 | `scripts/spec-check.sh` 比對 main 合入 PR 與合入 `spec/<分支名>` 的結果；那個分支只有你的帳號推得動。它只證明受保護路徑的合併結果一致，測試合不合理仍要 review |
+| spec 和驗收測試符合認可版本 | PR 描述寫的，任何人都改得到 | `scripts/spec-check.sh` 比對 PR head 與 main 合入 `spec/<分支名>` 的結果；那個分支只有你的帳號推得動。它只證明受保護路徑的內容一致，測試合不合理仍要 review |
 | 引用的程式碼 | 指向分支的連結：分支更新後，內容就變了 | 固定在 commit 上的永久連結：`gh browse <path>:<line> --commit <sha> --no-browser` |
 | 手動驗收做過了 | agent 說它驗過 | 你親自做的 |
 

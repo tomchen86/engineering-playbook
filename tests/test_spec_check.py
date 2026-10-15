@@ -131,13 +131,10 @@ class SpecCheck(unittest.TestCase):
 
     def test_unrelated_specs_on_main_need_no_spec_branch_refresh(self):
         self.on_main(SYNC)
-        for sync in (False, True):
-            with self.subTest(pr_has_main=sync):
-                if sync:
-                    git(self.repo, "merge", "-q", "--no-edit", "main")
-                code, out = self.check()
-                self.assertEqual(code, 0, out)
-                self.assertIn("ok    ", out)
+        git(self.repo, "merge", "-q", "--no-edit", "main")
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
+        self.assertIn("ok    ", out)
 
     def test_dropping_what_main_added_is_flagged(self):
         """The PR's own copies still equal the stale spec/<branch>, so comparing only those two would pass."""
@@ -150,15 +147,19 @@ class SpecCheck(unittest.TestCase):
         self.assertEqual(code, 1, out)
         self.assertIn("these files are not what was approved\n      docs/specs/sync/spec.md", out)
 
-    def test_a_code_conflict_goes_to_the_implementer(self):
-        self.on_main({"src/impl": "someone else's code\n"})
+    def test_a_head_behind_main_is_flagged_before_anything_is_compared(self):
+        """Only an up-to-date head lands on main as its own tree (main-integrity requires it)."""
+        self.on_main({"src/other": "someone else's code\n"})
         code, out = self.check()
         self.assertEqual(code, 1, out)
-        self.assertIn("the implementer", out)
-        self.assertIn("src/impl", out)
+        self.assertIn("behind main", out)
+        git(self.repo, "merge", "-q", "--no-edit", "main")
+        self.assertEqual(self.check()[0], 0)
 
     def test_a_spec_conflict_goes_to_the_spec_author(self):
+        """The implementer took main but kept the approved test; main and spec/ still disagree."""
         self.on_main({TEST: "main rewrites the test\n"})
+        git(self.repo, "merge", "-q", "--no-edit", "-X", "ours", "main")
         code, out = self.check()
         self.assertEqual(code, 1, out)
         self.assertIn("the spec author", out)
@@ -175,34 +176,6 @@ class SpecCheck(unittest.TestCase):
         code, out = self.check()
         self.assertEqual(code, 1, out)
         self.assertIn("the spec author", out)
-
-    def test_equal_snapshots_do_not_hide_a_different_squash_result(self):
-        original = "policy=old\nkeep1\nkeep2\nkeep3\nkeep4\nverify=old\n"
-        approved = original.replace("verify=old", "verify=new")
-        self.on_main({TEST: original})
-        self.spec_author(files={TEST: original})
-        self.spec_author(merge_main=True, files={TEST: approved})
-        git(self.repo, "merge", "-q", "--no-edit", APPROVED)
-        self.on_main({TEST: original.replace("policy=old", "policy=new")})
-        self.spec_author(merge_main=True, files={TEST: approved})
-        self.assertEqual(git(self.repo, "diff", "--name-only", APPROVED, "HEAD", "--", TEST), "")
-        code, out = self.check()
-        self.assertEqual(code, 1, out)
-        self.assertIn(TEST, out)
-        git(self.repo, "merge", "-q", "--no-edit", APPROVED)
-        self.assertEqual(self.check()[0], 0)
-
-    def test_virtual_results_agree_with_local_squash_merges(self):
-        self.on_main(SYNC)
-        self.assertEqual(self.check()[0], 0)
-        main = git(self.repo, "rev-parse", "main")
-        for ref in (APPROVED, "codex/feat"):
-            with self.subTest(ref=ref):
-                expected = git(self.repo, f"--attr-source={main}", "merge-tree", "--write-tree", main, ref)
-                git(self.repo, "switch", "-q", "--detach", main)
-                git(self.repo, "merge", "-q", "--squash", ref)
-                self.assertEqual(git(self.repo, "write-tree"), expected)
-                git(self.repo, "reset", "-q", "--hard", main)
 
     def test_a_spec_update_must_be_merged_into_the_pr(self):
         self.spec_author({SPEC: R1 + R2 + R3, TEST: "case 1\ncase 2\ncase 3\n"})
