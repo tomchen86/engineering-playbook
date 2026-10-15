@@ -386,7 +386,7 @@ review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 比對 `d
 
 **2. 實作者的身分：一個機器帳號（bot）。** 以 collaborator（write 權限）的身分加入 repo。規格作者和審查者用你的身分操作。bot 更新不了 main，也推不動 `spec/` 分支；第 2 章的獨立驗證靠的就是後面這一點。
 - 個人帳號底下的 repo，collaborator 不能用 fine-grained token，只能用 classic 的 `repo` scope。所以權限要靠 ruleset 限制，不能靠 token。
-- bot 的憑證只放進實作者的環境，例如讓 `GH_CONFIG_DIR` 指向一個只有 bot 的設定目錄。
+- bot 的憑證只放進實作者的環境，例如讓 `GH_CONFIG_DIR` 指向一個只有 bot 的設定目錄，並執行 `gh auth setup-git` 讓 git 也透過 gh 取得憑證；否則 git 會從系統的憑證管理（例如 macOS 鑰匙圈）拿你的帳號，實作者 push 時用的就是你的身分。實作者開工前會檢查 gh 和 git 都不是 owner 的帳號（`AGENTS.md` 的 Implementing）：用你的帳號實作，ruleset 的保護就全部失效。
 - 在同一個 OS 使用者底下，實作者讀得到你的 keychain。環境隔離只防得了「不小心」，防不了「被誘導」。要真正隔離，就讓實作者跑在容器裡。
 
 **3. Merge 時釘住 commit。** 審查者合併時用 `--match-head-commit` 指定看過的 commit，並加上 `--admin`（完整指令在 `skills/review-pr`）。`--admin` 是必要的：只有你能更新 main，靠的是 `main-merge` 的繞過名單，而 `gh` 不加 `--admin` 就不會使用這個繞過（[cli/cli#13388](https://github.com/cli/cli/issues/13388)，已在測試 repo 實測）。它也是安全的：`main-integrity` 沒有人能繞過，所以 `--admin` 跳不過失敗的 `check`（實測：紅燈的 PR 加 `--admin` 會被拒絕）。`--match-head-commit`：如果 review 之後實作者又推了新的 commit，merge 會失敗，沒看過的東西就不會被合進去。

@@ -54,6 +54,7 @@ Once per issue that changes behavior:
 
 ## Implementing
 
+- First confirm that both gh and git act as the bot, not the owner: `gh api user --jq .login` and `printf 'protocol=https\nhost=github.com\n\n' | GIT_TERMINAL_PROMPT=0 git credential fill | sed -n 's/^username=//p'` must each differ from `gh repo view --json owner --jq .owner.login`. If either is the owner, stop and tell the owner: with that account you could push `spec/` branches and merge.
 - Start only when `spec/<branch>` exists on the remote. Fetch with `git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main +refs/heads/spec/<branch>:refs/remotes/origin/spec/<branch>`; proceed only if it succeeds. Your work order is `git diff refs/remotes/origin/main...refs/remotes/origin/spec/<branch>`.
 - Make the failing tests pass. Never edit `docs/specs/` or the acceptance tests, not even to add a line. Clean merges of main's changes are allowed. Put your own tests elsewhere, without requirement IDs. If a test looks wrong, stop and explain why.
 - The spec author's updates arrive on `spec/<branch>`: take them with `git fetch --no-tags origin refs/heads/spec/<branch> && git merge FETCH_HEAD`. Never resolve a conflict in specs or acceptance tests yourself: the spec author resolves it on `spec/<branch>`, then you merge that update.
