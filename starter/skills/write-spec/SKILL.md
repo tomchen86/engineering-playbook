@@ -35,7 +35,7 @@ git push origin HEAD:refs/heads/spec/<branch>
 
 The implementer takes your commit with `git fetch --no-tags origin refs/heads/spec/<branch> && git merge FETCH_HEAD`.
 
-Independent changes on main are combined automatically during review. If the approved version conflicts with main, check it out as above, run `git fetch --no-tags origin refs/heads/main && git merge FETCH_HEAD`, settle the conflict with the owner, and push. The implementer then merges your update.
+Independent changes on main are combined automatically during review, and a conflict only in code is the implementer's to settle. If the approved version conflicts with main in the specs or acceptance tests, check it out as above, run `git fetch --no-tags origin refs/heads/main && git merge FETCH_HEAD`, settle the conflict with the owner, and push. The implementer then merges your update.
 
 ## Never
 

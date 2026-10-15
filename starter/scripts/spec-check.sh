@@ -13,13 +13,15 @@
 # The head must already contain main (main-integrity requires that before merging),
 # so what lands on main is the head's own tree. The approved result is main merged
 # with the approved commit: merge-tree, main's attributes, no index or worktree
-# touched. ok (exit 0) means that merge succeeds and its docs/specs and acceptance
-# entries equal the head's. Tree entries include modes and gitlinks regardless of
-# the PR's diff settings. Requires Git 2.43+.
+# touched. ok (exit 0) means that merge has no conflict in docs/specs or the
+# acceptance paths, and their entries equal the head's. A conflict only elsewhere is
+# code: the implementer settles it on the PR branch. Tree entries include modes and
+# gitlinks regardless of the PR's diff settings. Requires Git 2.43+.
 # A match verifies the files, not that the tests make sense or were run.
 set -euo pipefail
 [ $# -eq 1 ] || { echo "usage: spec-check.sh <branch>" >&2; exit 2; }
 branch=$1
+cd "$(git rev-parse --show-toplevel)"  # merge-tree lists conflicted files relative to the current directory
 
 # One snapshot of origin's branches, matched by exact name and used by commit ID from here
 # on. Names are not safe to resolve: the implementer can push a tag called origin/main,
@@ -55,10 +57,17 @@ git merge-base --is-ancestor "$main" "$head" ||
 # Read literal paths from the repo root, even when called from a subdirectory.
 files() { git --literal-pathspecs -c core.quotePath=false ls-tree -r --full-tree "$1" -- "${paths[@]}"; }
 differing() { diff <(printf '%s\n' "$1") <(printf '%s\n' "$2") | sed -n $'s/^[<>] [^\t]*\t/      /p' | sort -u; }  # for display
+in_paths() { local p; for p in "${paths[@]}"; do p=${p%/}; [[ $1 == "$p" || $1 == "$p"/* ]] && return 0; done; return 1; }
 approved_tree() {  # main merged with the approved commit, using main's attributes
-  local out
-  out=$(git --attr-source="$main" merge-tree --write-tree --name-only --no-messages "$main" "$base") &&
-    { printf '%s\n' "$out"; return; }
+  local out status=0 f
+  out=$(git --attr-source="$main" -c core.quotePath=false merge-tree --write-tree --name-only --no-messages "$main" "$base") || status=$?
+  # Exit 1 lists the conflicted files after the tree ID. If none is in the compared paths, those
+  # files merged cleanly and the conflict is the implementer's: compare the tree anyway.
+  if [ "$status" -eq 1 ]; then
+    status=0
+    while IFS= read -r f; do if in_paths "$f"; then status=1; fi; done <<<"$(tail -n +2 <<<"$out")"
+  fi
+  [ "$status" -ne 0 ] || { head -n 1 <<<"$out"; return; }
   echo "FLAG  cannot merge $approved into main; the spec author resolves the error or conflict on $approved first:" >&2
   tail -n +2 <<<"$out" >&2
   return 1

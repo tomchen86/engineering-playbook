@@ -171,6 +171,18 @@ class SpecCheck(unittest.TestCase):
         self.assertIn("the spec author", out)
         self.assertIn(TEST, out)
 
+    def test_a_code_only_conflict_stays_with_the_implementer(self):
+        """write-spec adds a stub so red tests build; main then lands real code in the same file."""
+        self.spec_author({"src/api": "stub\n"})
+        git(self.repo, "merge", "-q", "--no-edit", APPROVED)
+        self.on_main({"src/api": "someone else's code\n"})
+        conflict = subprocess.run(["git", "merge-tree", "--write-tree", "main", APPROVED], cwd=self.repo, capture_output=True)
+        self.assertEqual(conflict.returncode, 1, "main and the approved version must conflict, in code only")
+        git(self.repo, "merge", "-q", "--no-edit", "-X", "theirs", "main")
+        code, out = self.check()
+        self.assertEqual(code, 0, out)
+        self.assertIn("ok    ", out)
+
     def test_pr_attributes_cannot_resolve_the_approved_versions_conflict(self):
         self.on_main({TEST: "main rewrites the test\n"})
         self.commit("implementer sets union", {".gitattributes": "tests/acceptance/** merge=union\n"})
