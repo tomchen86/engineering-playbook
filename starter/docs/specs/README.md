@@ -50,7 +50,7 @@ WHILE a member scrolls a list of 500 expenses on a physical phone, the mobile ap
 `<DOMAIN>-<number>.<version>`, for example `LEDGER-2.1`.
 
 - Numbers are never reused. A deleted requirement leaves a gap.
-- When the meaning changes, bump the version (`LEDGER-2.1` → `LEDGER-2.2`) and update every test that cites it. Tests still citing `LEDGER-2.1` fail the trace check, which is how you find all of them.
+- When the meaning changes, bump the version (`LEDGER-2.1` → `LEDGER-2.2`) and update every test that cites it. Passing tests still citing `LEDGER-2.1` fail the trace check. It sees only tests that ran and passed, so also search for `LEDGER-2.1` and `LEDGER_2_1` to find skipped, failing, or commented-out ones.
 - Wording and typo fixes keep the version.
 - `(manual)` right after the ID marks a requirement no automated test can check. The trace check lists these as the pre-release manual checklist.
 - A heading that looks like a requirement (any level, any case, singular or plural) but is not exactly `### Requirement: <ID>` fails the trace check instead of being skipped.
