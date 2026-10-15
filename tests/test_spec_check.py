@@ -17,6 +17,12 @@ TEST = "tests/acceptance/ledger.test"
 R1, R2, R3 = (f"### Requirement: LEDGER-{n}.1\n" for n in (1, 2, 3))
 SYNC = {"docs/specs/sync/spec.md": "### Requirement: SYNC-1.1\n", "tests/acceptance/sync.test": "case 1\n"}
 APPROVED = "refs/remotes/origin/spec/codex/feat"
+STARTER = SCRIPT.parents[1]
+
+
+def agents(*paths):
+    """The starter's AGENTS.md with the acceptance test paths filled in: the fixture uses the real line format."""
+    return (STARTER / "AGENTS.md").read_text().replace("<acceptance test paths>", "`, `".join(paths))
 
 
 def git(cwd, *args):
@@ -34,7 +40,7 @@ class SpecCheck(unittest.TestCase):
         git(self.repo, "remote", "add", "origin", origin)
         git(self.repo, "config", "user.email", "t@t")
         git(self.repo, "config", "user.name", "t")
-        self.commit("base", {SPEC: R1, TEST: "case 1\n"})
+        self.commit("base", {SPEC: R1, TEST: "case 1\n", "AGENTS.md": agents("tests/acceptance")})
         git(self.repo, "push", "-q", "origin", "main")
         git(self.tmp, "clone", "-q", "--single-branch", "--branch", "main", origin, "review")
         git(self.repo, "switch", "-q", "-c", "codex/feat")
@@ -71,7 +77,7 @@ class SpecCheck(unittest.TestCase):
         git(self.repo, "push", "-q", "origin", "HEAD:refs/heads/spec/codex/feat")
         git(self.repo, "switch", "-q", "codex/feat")
 
-    def check(self, branch="codex/feat", path="tests/acceptance", checkout=True):
+    def check(self, branch="codex/feat", checkout=True):
         """Push the branch, check its head out in the reviewer's clone, and run the script there."""
         git(self.repo, "push", "-q", "-f", "origin", branch)
         review = self.tmp / "review"
@@ -79,7 +85,7 @@ class SpecCheck(unittest.TestCase):
             git(review, "fetch", "-q", "origin", f"+refs/heads/{branch}:refs/remotes/origin/{branch}")
             git(review, "checkout", "-q", "--detach", f"refs/remotes/origin/{branch}")
         # Run from a subdirectory: the paths must still be read from the repo root.
-        result = subprocess.run(["bash", str(SCRIPT), branch, path],
+        result = subprocess.run(["bash", str(SCRIPT), branch],
                                 cwd=review / "docs", capture_output=True, text=True)
         return result.returncode, result.stdout + result.stderr
 
@@ -206,7 +212,7 @@ class SpecCheck(unittest.TestCase):
     def run_review_command(self, review):
         skill = SCRIPT.parents[1] / "skills/review-pr/SKILL.md"
         command = re.search(r"```bash\n(.*?)\n\s*```", skill.read_text(), re.S).group(1)
-        command = command.replace("<branch>", "codex/feat").replace("<acceptance test paths>", "tests/acceptance")
+        command = command.replace("<branch>", "codex/feat")
         return subprocess.run(["bash", "-c", command], cwd=review, capture_output=True, text=True)
 
     def test_documented_loader_fails_when_main_has_no_script(self):
@@ -268,17 +274,30 @@ class SpecCheck(unittest.TestCase):
         self.assertIn("note  no spec/refactor", out)
         self.assertIn(TEST, out)
 
-    def test_a_mistyped_path_is_flagged_instead_of_comparing_nothing(self):
+    def test_a_mistyped_path_on_main_is_flagged_instead_of_comparing_nothing(self):
+        self.on_main({"AGENTS.md": agents("tests/acceptence")})
+        git(self.repo, "merge", "-q", "--no-edit", "main")
         self.commit("implementer", {TEST: "case 1\ncase 2\nreturn\n"})
-        code, out = self.check(path="tests/acceptence")
+        code, out = self.check()
         self.assertEqual(code, 1, out)
         self.assertIn("FLAG  'tests/acceptence' is on neither main, spec/codex/feat, nor codex/feat", out)
 
     def test_a_path_cannot_carry_pathspec_magic_that_excludes_the_specs(self):
+        self.on_main({"AGENTS.md": agents(":(exclude)docs/specs")})
+        git(self.repo, "merge", "-q", "--no-edit", "main")
         self.commit("implementer", {SPEC: "another spec\n"})
-        code, out = self.check(path=":(exclude)docs/specs")
+        code, out = self.check()
         self.assertNotEqual(code, 0, out)
         self.assertNotIn("ok    ", out)
+
+    def test_paths_come_from_main_and_every_listed_path_counts(self):
+        """A PR cannot narrow the comparison by editing its own AGENTS.md."""
+        self.on_main({"AGENTS.md": agents("tests/acceptance", "e2e"), "e2e/flow.test": "step 1\n"})
+        git(self.repo, "merge", "-q", "--no-edit", "main")
+        self.commit("implementer", {"AGENTS.md": agents("tests/acceptance"), "e2e/flow.test": "step 1\nreturn\n"})
+        code, out = self.check()
+        self.assertEqual(code, 1, out)
+        self.assertIn("e2e/flow.test", out)
 
     def test_without_a_spec_branch_nothing_may_change(self):
         git(self.repo, "switch", "-q", "-c", "refactor", "main")

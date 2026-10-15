@@ -11,10 +11,10 @@ Check the PR out in its own worktree so your other work stays untouched: `git wo
 
 1. The PR is marked ready (not a draft) and up to date with main. If it is behind, run `gh pr update-branch <N>` and refresh this worktree with `gh pr checkout <N> --detach`; send conflicts to the owners described in step 3. Wait for CI on the updated head: `gh pr checks <N> --watch --fail-fast`.
 2. The description has `Closes #<N>` or `No issue: <reason>`, and every template section is filled.
-3. The specs and acceptance tests are the ones the owner approved. With Git 2.43+, inside the PR's worktree, run main's copy of the check, with the paths from main's `AGENTS.md` (`git show FETCH_HEAD:AGENTS.md` immediately after fetching main). Never take either from the worktree's own files: the PR can edit both.
+3. The specs and acceptance tests are the ones the owner approved. With Git 2.43+, inside the PR's worktree, run main's copy of the check; it reads the acceptance test paths from main's `AGENTS.md` itself. Never take the script from the worktree's own files: the PR can edit them.
 
    ```bash
-   f=$(mktemp) && git fetch -q --no-tags origin refs/heads/main && git show FETCH_HEAD:scripts/spec-check.sh > "$f" && bash "$f" <branch> <acceptance test paths>
+   f=$(mktemp) && git fetch -q --no-tags origin refs/heads/main && git show FETCH_HEAD:scripts/spec-check.sh > "$f" && bash "$f" <branch>
    ```
 
    It requires the head to contain main (step 1), virtually merges current main with `spec/<branch>` using main's attributes, then compares that result's spec and acceptance-test entries with the head's. Independent changes on main merge automatically; a PR without a spec branch must leave these files as main has them. It passes only when it exits successfully and prints an `ok` line; keep that line, including main's SHA, for your report. Differences or conflicts in specs/tests go to the spec author; code conflicts from updating the branch go to the implementer. A match verifies the files, not that the tests make sense or ran: that is step 4 and CI.

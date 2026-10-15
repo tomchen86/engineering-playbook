@@ -2,9 +2,9 @@
 # Is this PR carrying exactly the specs and acceptance tests the owner approved?
 # Used by skills/review-pr, step 3.
 #
-#   usage: bash scripts/spec-check.sh <branch> <acceptance test path>...
-#   Run it in a checkout of the PR's head. Paths are literal directories or files,
-#   relative to the repo root.
+#   usage: bash scripts/spec-check.sh <branch>
+#   Run it in a checkout of the PR's head. The acceptance test paths are read from
+#   main's AGENTS.md ("- Acceptance tests: `path`, `path`"), never from the PR's copy.
 #
 # The approved version is the branch spec/<branch>, which only the owner can push
 # (.github/rulesets/spec-branches.json). A PR without one has nothing approved, so
@@ -18,9 +18,8 @@
 # the PR's diff settings. Requires Git 2.43+.
 # A match verifies the files, not that the tests make sense or were run.
 set -euo pipefail
-[ $# -ge 2 ] || { echo "usage: spec-check.sh <branch> <acceptance test path>..." >&2; exit 2; }
-branch=$1; shift
-paths=(docs/specs "$@")
+[ $# -eq 1 ] || { echo "usage: spec-check.sh <branch>" >&2; exit 2; }
+branch=$1
 
 # One snapshot of origin's branches, matched by exact name and used by commit ID from here
 # on. Names are not safe to resolve: the implementer can push a tag called origin/main,
@@ -34,6 +33,13 @@ if [ -z "$base" ]; then
   approved=main; base=$main
 fi
 git fetch -q --no-tags origin "$main" "$base" "$head"
+
+# The acceptance test paths come from main's AGENTS.md, since the PR can edit its own copy,
+# and a path left out by hand would simply not be compared.
+acceptance=$(git show "$main:AGENTS.md" | sed -n 's/^- Acceptance tests: //p' | grep -o '`[^`]*`' | tr -d '`' || true)
+set -- $acceptance
+[ $# -ge 1 ] || { echo "FLAG  AGENTS.md on main has no '- Acceptance tests:' line listing paths in backticks"; exit 1; }
+paths=(docs/specs "$@")
 
 # What gets compared must be what gets reviewed, and later merged with --match-head-commit.
 [ "$(git rev-parse HEAD)" = "$head" ] ||
@@ -58,7 +64,7 @@ approved_tree() {  # main merged with the approved commit, using main's attribut
 # A path that exists nowhere, such as a mistyped one, would compare nothing and pass.
 for path in "$@"; do
   [ -n "$(for commit in "$main" "$base" "$head"; do git --literal-pathspecs ls-tree --full-tree "$commit" -- "$path"; done)" ] ||
-    { echo "FLAG  '$path' is on neither main, $approved, nor $branch: use the paths in AGENTS.md on main"; exit 1; }
+    { echo "FLAG  '$path' is on neither main, $approved, nor $branch: fix the Acceptance tests line in AGENTS.md on main"; exit 1; }
 done
 want_tree=$(approved_tree)
 want=$(files "$want_tree"); got=$(files "$head")

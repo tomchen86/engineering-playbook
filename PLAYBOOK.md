@@ -305,7 +305,7 @@ review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 比對 `d
 
 有衝突就停下來：main 和 `spec/` 分支在 spec 或驗收測試上的衝突，由規格作者在 `spec/` 分支解決，再交給實作者合入；PR 更新 main 時的程式碼衝突由實作者處理。腳本不替人決定衝突的意思。
 
-沒有 `spec/` 分支的 PR，基準就是 main：合併後不能改變這些檔案。純文字修正若涉及 `docs/specs/`，沿用第 1 章的簡短核准方式建立基準。審查者先明確 fetch main，再從 `FETCH_HEAD` 讀取腳本；讀取成功才執行。路徑也從 main 上的 `AGENTS.md` 讀，因為 PR 改得到這兩個檔案。
+沒有 `spec/` 分支的 PR，基準就是 main：合併後不能改變這些檔案。純文字修正若涉及 `docs/specs/`，沿用第 1 章的簡短核准方式建立基準。審查者先明確 fetch main，再從 `FETCH_HEAD` 讀取腳本；讀取成功才執行。驗收路徑由腳本自己從 main 的 `AGENTS.md` 讀，不經人手抄，因為 PR 改得到這兩個檔案，而少抄一個路徑不會有任何錯誤訊息。
 
 腳本還會擋掉幾種「其實沒比到」的情況，不讓它們默默通過：
 
