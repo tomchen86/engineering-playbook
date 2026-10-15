@@ -370,7 +370,7 @@ review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 比對 `d
 
 `main-integrity` 也開啟 GitHub 的[合併前分支須保持最新](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets#require-status-checks-to-pass-before-merging)。PR 落後 main 時，先更新、等新 head 的 CI 通過、審查新增的改動，再合併（步驟在 `skills/review-pr`）；有衝突時，spec 和驗收測試交回規格作者，程式碼交回實作者。代價是 main 前進時，尚未合併的 PR 需要更新並重跑 CI。
 
-套用方式：在新 repo 的目錄裡執行 `bash scripts/setup-github.sh`。它先檢查工具、Git 版本，以及 gh 登入的帳號是不是這個 repo 的管理員；有問題就在改動任何設定之前停下來，說明怎麼修。接著建立缺少的 ruleset、更新既有的同名 ruleset，並設定只允許 squash merge、merge 後自動刪除分支，建立 label；最後讀回設定，列出每個 ruleset 是否啟用，以及 secret scanning 的狀態。加上 `--check` 只做檢查和讀回，不改任何設定。Ruleset 以 `.github/rulesets/` 裡的 JSON 為準，重複執行也會同步更新；自訂規則請先修改 JSON，避免 GitHub 網頁上的修改被覆蓋。
+套用方式：在新 repo 的目錄裡執行 `bash scripts/setup-github.sh`。它先檢查工具、Git 版本，以及 gh 登入的帳號是不是這個 repo 的管理員；有問題就在改動任何設定之前停下來，說明怎麼修。接著建立缺少的 ruleset、更新既有的同名 ruleset，並設定只允許 squash merge、merge 後自動刪除分支，建立 label；最後讀回設定，列出每個 ruleset 是否啟用，以及 secret scanning 的狀態。加上 `--check` 只做檢查和讀回，不改任何設定。讀回成功只代表合併設定和 ruleset 都在、而且啟用，不代表規則內容沒被改過，也不代表行為正確；行為要靠下面六項驗證。Ruleset 以 `.github/rulesets/` 裡的 JSON 為準，重複執行也會同步更新；自訂規則請先修改 JSON，避免 GitHub 網頁上的修改被覆蓋。
 
 也可以到 Settings → Rules → Rulesets 用 Import 匯入。如果匯入時說 actor 無效，就在介面上手動建立 `main-merge`：繞過名單加入 Repository admin，模式選 For pull requests only。`spec-branches` 和 `tags` 也一樣，模式選 Always。
 
@@ -403,6 +403,7 @@ review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 比對 `d
 - **讓 CI 成為唯一關卡時**（第 0 章開放了自動合併）：merge 當下沒有人看 diff，檢查本身就必須防竄改。拿掉 bot 的 `workflow` scope，讓它不能修改 CI 設定；CI 改成執行主線上那份 `check.sh` 和 `trace_check.py`，因為 bot 改得到 PR 裡的任何檔案，包括檢查腳本。auto-merge 能不能配合 `main-merge` 的繞過名單，要先在測試 repo 試過再開放。另外要注意：有 write 權限的人推新的 commit，不會取消已經開啟的 auto-merge。
 - **有第二個人類加入**：在 `main-integrity` 打開 1 人 approval 和 Require approval of the most recent reviewable push，並加上 CODEOWNERS。
 - **repo 在 organization 底下**：可以改用 branch protection 的 Restrict who can push，也可以給 bot 用 fine-grained token。
+- **發現 ruleset 被改過**（例如 agent 用你的管理員帳號放寬規則，讓卡住的 merge 通過）：讓 `setup-github.sh --check` 逐項比對 JSON 裡寫的欄位，GitHub 自己多出的欄位不算；並定好什麼時候跑它，例如每次發版前。
 - **public repo、依賴很多**：加上 Dependabot（至少要更新 GitHub Actions），actions 改用 commit SHA 固定版本。
 
 ---

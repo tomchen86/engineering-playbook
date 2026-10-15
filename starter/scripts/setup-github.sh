@@ -2,6 +2,8 @@
 # One-time GitHub setup for a new repo: merge settings, labels, rulesets.
 # Safe to re-run: it also brings existing rulesets back in line with the JSON. Run from a clone after the first push, logged in to gh as the owner.
 # With --check it changes nothing: it runs the same preflight, then reads the settings back.
+# Exit 0 means the merge settings and rulesets are in place and active. It does not compare rule
+# contents or prove behavior: the six permission checks in PLAYBOOK chapter 3 do that.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 fail() { echo "setup-github: $*" >&2; exit 1; }
@@ -42,15 +44,17 @@ if [ "${1:-}" != --check ]; then
 fi
 
 # Read back what GitHub has now.
-gh api "repos/$repo" --jq '"squash merge only: \(.allow_squash_merge and (.allow_merge_commit | not) and (.allow_rebase_merge | not)); delete branch on merge: \(.delete_branch_on_merge)"'
+read -r squash_only delete_branch < <(gh api "repos/$repo" --jq '"\(.allow_squash_merge and (.allow_merge_commit | not) and (.allow_rebase_merge | not)) \(.delete_branch_on_merge)"')
+echo "squash merge only: $squash_only; delete branch on merge: $delete_branch"
+wrong=0
+[ "$squash_only" = true ] && [ "$delete_branch" = true ] || wrong=1
 # Secret scanning blocks pushes that contain keys. Free on public repos; report its state.
 gh api "repos/$repo" --jq '"secret scanning: \(.security_and_analysis.secret_scanning.status // "unavailable"), push protection: \(.security_and_analysis.secret_scanning_push_protection.status // "unavailable")"'
 current=$(gh api "repos/$repo/rulesets" --jq '.[] | "\(.name)\t\(.enforcement)"')
-inactive=0
 while IFS= read -r name; do
   state=$(awk -F'\t' -v n="$name" '$1 == n { print $2 }' <<<"$current")
   echo "ruleset $name: ${state:-missing}"
-  [ "$state" = active ] || inactive=1
+  [ "$state" = active ] || wrong=1
 done <<<"$names"
-[ "$inactive" -eq 0 ] || fail "a ruleset above is missing or not active: run this script without --check"
+[ "$wrong" -eq 0 ] || fail "a setting above is not what this script sets: run it without --check"
 echo "Next: the six permission checks in PLAYBOOK chapter 3; record the results in the first PR's Verification section."
