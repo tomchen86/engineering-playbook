@@ -4,7 +4,7 @@
 
 | 路徑 | 內容 |
 |---|---|
-| [`PLAYBOOK.md`](PLAYBOOK.md) | 8 個問題（第 0～7 章），每一章都有預設答案、對應的模板、什麼時候要改 |
+| [`PLAYBOOK.md`](PLAYBOOK.md) | 這套系統的需求：每個做法要保證什麼、為什麼、什麼時候改（第 0～7 章）。修改系統或第一次採用時讀，日常開發不用讀 |
 | [`starter/`](starter/) | 示範性的初始 repo，開新專案時整包複製 |
 | [`tests/`](tests/) | `trace_check.py`、`spec-check.sh` 和 starter 設定的自我測試 |
 
@@ -34,6 +34,6 @@
 
 ## 修改這份 playbook
 
-- 改 `starter/` 裡的檔案時，同一個 commit 要更新 `PLAYBOOK.md` 對應的章節。
+- 改到某個保證或決定（要成立什麼、為什麼）時，同一個 commit 要更新 `PLAYBOOK.md` 對應的章節。只改指令或步驟的寫法時，只動 skills 或腳本，不用動 PLAYBOOK。
 - 自我測試：`python3 -m unittest discover -s tests -v`，CI 也會跑。
 - 已經複製出去的專案不會自動更新。等有兩個以上的專案、同一個檔案已經改過兩次，再把 CI 改成 reusable workflow：讓專案的 CI 直接呼叫這個 repo 裡的 workflow，改一次就全部生效。

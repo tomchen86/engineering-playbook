@@ -9,6 +9,8 @@
 - **模板**：[`starter/`](starter/) 裡對應的檔案
 - **什麼時候改**：哪些情況下預設答案不適用
 
+這份文件是這套系統的需求：寫要成立什麼、為什麼這樣決定、什麼時候要改。怎麼做寫在 [`starter/`](starter/) 的 skills 和腳本裡；這份文件加上 [`tests/`](tests/) 的自我測試，足以重建 starter。日常開發不讀它：你看 README 的「平常你只做兩件事」，agent 讀專案裡的 `AGENTS.md` 和 skills。要修改這套系統，或第一次採用時，才讀這份。
+
 開新專案的步驟寫在 [README.md](README.md)。
 
 ## 核心觀念
