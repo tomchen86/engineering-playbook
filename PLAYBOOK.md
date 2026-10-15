@@ -151,7 +151,7 @@ Issue 描述「這次要做什麼」，做完就關閉。spec 描述「系統現
 0. **想法**：有用 GitHub Project 的話，建一個 draft item（只存在 Project 裡、還不是 Issue 的項目）；沒有的話，好幾個階段的大方向，討論後寫成 proposal（見下方）；小想法等決定要做再開 Issue。
 1. **決定要做，開 Issue**（用 Issue Form）：目標、驗收條件（用 EARS 句子寫，之後原樣搬進 spec）、影響哪些 capability、不做什麼。大功能拆成 sub-issues，每個 sub-issue 各走一次第 2～6 步。有用 Project 的話，你把它排進 Ready，才算准許開工。
 2. **寫 spec 和紅燈測試**（規格作者，`skills/write-spec`）：
-   - `gh issue develop <N> --checkout`：建立連到 Issue 的分支，分支會出現在 Issue 的 Development 欄位。
+   - `gh issue develop <N> --checkout`：建立連到 Issue 的分支，分支會出現在 Issue 的 Development 欄位。開完先確認 origin 上沒有同名的 `spec/<分支名>` 留下來，有就停下來告訴你：實作者會把它當成這個 PR 的認可版本。
    - 改 spec：新增、改版或刪除 requirement。
    - 寫引用編號的測試（驗收測試），放在 `AGENTS.md` 指定的目錄，這時測試是紅的。先把邊界情況寫進去：除不盡、空值、零、上限、重複。衍生規則大多從這些地方長出來（第 2 章）。測試打在元件對外的邊界（HTTP、CLI、匯出的 API），不打內部；邊界還不存在時補最小的 stub，讓紅燈是斷言失敗、不是建置失敗，否則 `check.sh` 停在編譯，追溯檢查會把所有編號列成 untested。
    - 牽涉架構層級的選擇時，寫一篇 ADR。
