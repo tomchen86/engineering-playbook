@@ -337,7 +337,7 @@ review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 比對 `d
 - **測試分散在多個 CI job**（例如 monorepo 每個 app 一個 job）：每個 job 把 `reports/junit/` 上傳成 artifact，另外開一個 job 下載全部之後，再跑追溯檢查。
 - **審查者漏跑過 spec-check，或常有不經審查者的 PR**：把它加進 CI 當 required check，用 main 的腳本比對 PR head。要點：checkout 指定 `pull_request.head.sha` 和 `fetch-depth: 0`，否則 HEAD 對不上、`merge-base` 誤判；不能用 `if:` 跳過 draft，被跳過的 job 算通過；分支名用 `env:` 傳進 `run:`。它只擋「忘了跑」：綠燈綁在 head 上，`spec/` 分支更新後不會重跑，所以合併前仍要照 review-pr 第 3 步本機跑一次，不改要求內容的 spec 或驗收測試 PR，推完 `spec/` 分支也要 rerun。
 - **有人提議「改了程式卻沒改 docs 就讓 CI 失敗」**：預設不做。程式碼通常按技術分層（controller、service、entity），從改了哪個檔案，看不出該對應哪份 spec；重構和修 bug 大多也不用改 spec，誤報一多就沒人看了。行為改了有沒有跟著改 spec，交給 review。
-- **專案很小、規則很少**：可以先不寫 spec。沒有 spec 時，追溯檢查會直接通過。
+- **專案很小**：只要會長期維護，就照樣寫 spec，規則少的時候寫起來成本也最低。沒有 spec 時，追溯檢查和 spec-check 都會直接通過，卻什麼都沒檢查到。做完就丟的原型是第 0 章的 0 級，整套省略。
 
 ---
 
