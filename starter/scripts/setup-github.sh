@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # One-time GitHub setup for a new repo: merge settings, labels, rulesets.
-# Safe to re-run: it also brings existing rulesets back in line with the JSON. Run from a clone after the first push, logged in to gh as the owner.
+# Safe to re-run: it also brings existing rulesets back in line with the JSON. Run as the owner, from a clone after the first push: once gh's default account is the bot, GH_CONFIG_DIR=~/.config/gh-owner bash scripts/setup-github.sh
 # With --check it changes nothing: it runs the same preflight, then reads the settings back.
 # Exit 0 means the merge settings and rulesets are in place and active. It does not compare rule
 # contents or prove behavior: the six permission checks in PLAYBOOK chapter 3 do that.
@@ -16,7 +16,7 @@ read -r major minor < <(git --version | sed -E 's/^[^0-9]*([0-9]+)\.([0-9]+).*/\
 read -r repo owner < <(gh repo view --json nameWithOwner,owner --jq '.nameWithOwner + " " + .owner.login') ||
   fail "this clone has no GitHub repo yet: create one and push first"
 [ "$(gh api "repos/$repo" --jq .permissions.admin)" = true ] ||
-  fail "gh is logged in as $(gh api user --jq .login), not an admin of $repo: run gh auth switch -u $owner"
+  fail "gh is logged in as $(gh api user --jq .login), not an admin of $repo: run this script as $owner, for example GH_CONFIG_DIR=~/.config/gh-owner bash scripts/setup-github.sh"
 names=$(for f in .github/rulesets/*.json; do python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["name"])' "$f"; done)
 
 if [ "${1:-}" != --check ]; then

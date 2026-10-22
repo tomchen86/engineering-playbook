@@ -21,21 +21,21 @@ Format, IDs, EARS sentences, and how tests cite requirements: `docs/specs/README
 5. Run `bash scripts/check.sh`. Its requirement trace lists the new IDs as untested until the implementation makes their tests pass; anything else the trace reports is a mistake to fix now.
 6. Commit. Write the PR body into a file from `.github/pull_request_template.md` (`gh` skips the template when given a body): fill `Closes #<N>` and Requirements, and leave the implementer's sections. Then open the draft PR: `gh pr create --draft --title "<title>" --body-file <file> --label enhancement` (or `--label bug`).
 7. Ask the owner to review the spec diff in the draft PR, name the commit you are asking about (`git rev-parse HEAD`), and wait. If they want changes, revise the spec and the tests first.
-8. Once the owner approves, publish exactly that commit as the approved spec: `git push origin <approved SHA>:refs/heads/spec/<branch>`. Then hand off the branch name. Fetch the exact branches with `git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main +refs/heads/spec/<branch>:refs/remotes/origin/spec/<branch>`; proceed only if it succeeds. The work order is `git diff refs/remotes/origin/main...refs/remotes/origin/spec/<branch>`, not the issue text.
+8. The owner approves by publishing exactly that commit as the approved spec. Give them the command to run in this repository, `git push owner <approved SHA>:refs/heads/spec/<branch>`, and wait until `git ls-remote --exit-code origin refs/heads/spec/<branch>` finds it. Then hand off the branch name. Fetch the exact branches with `git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main +refs/heads/spec/<branch>:refs/remotes/origin/spec/<branch>`; proceed only if it succeeds. The work order is `git diff refs/remotes/origin/main...refs/remotes/origin/spec/<branch>`, not the issue text.
 
 ## Answering the implementer
 
-When the implementer asks about behavior the spec does not cover: decide it with the owner, then add the requirement and a failing test on `spec/<branch>`. Never commit them on the PR branch: it now carries the implementer's commits, and whatever you push to `spec/` counts as approved.
+When the implementer asks about behavior the spec does not cover: decide it with the owner, then commit the requirement and a failing test on top of `spec/<branch>`, and have the owner publish that commit. Never commit them on the PR branch: it now carries the implementer's commits.
 
 ```bash
 git fetch --no-tags origin refs/heads/spec/<branch> && git switch --detach FETCH_HEAD
-# edit the spec and the acceptance tests, commit
-git push origin HEAD:refs/heads/spec/<branch>
+# edit the spec and the acceptance tests, commit; then the owner runs, in this repository:
+git push owner <commit SHA>:refs/heads/spec/<branch>
 ```
 
 The implementer takes your commit with `git fetch --no-tags origin refs/heads/spec/<branch> && git merge FETCH_HEAD`.
 
-Independent changes on main are combined automatically during review, and a conflict only in code is the implementer's to settle. If the approved version conflicts with main in the specs or acceptance tests, check it out as above, run `git fetch --no-tags origin refs/heads/main && git merge FETCH_HEAD`, settle the conflict with the owner, and push. The implementer then merges your update.
+Independent changes on main are combined automatically during review, and a conflict only in code is the implementer's to settle. If the approved version conflicts with main in the specs or acceptance tests, check it out as above, run `git fetch --no-tags origin refs/heads/main && git merge FETCH_HEAD`, settle the conflict with the owner, and have the owner publish the result as above. The implementer then merges your update.
 
 ## Never
 

@@ -355,7 +355,7 @@ class SpecCheck(unittest.TestCase):
 
 
     def test_a_change_that_keeps_the_requirements_passes_once_its_head_is_published(self):
-        """One merge approval covers spec wording or a mechanical test edit: the head is published as spec/<branch>."""
+        """Spec wording or a mechanical test edit is flagged without a spec branch, for the owner's merge to approve; published as one, it passes."""
         for branch, files in (("docs/wording", {SPEC: R1 + "Clearer wording, same meaning.\n"}),
                               ("deps/test-framework", {TEST: "case 1, in the new framework's syntax\n"})):
             with self.subTest(branch=branch):

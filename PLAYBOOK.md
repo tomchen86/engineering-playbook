@@ -129,10 +129,10 @@ Issue 描述「這次要做什麼」，做完就關閉。spec 描述「系統現
 
 | 角色 | 負責 | 必須跟誰分開 |
 |---|---|---|
-| 擁有者 | 決定做什麼、看 spec 的 diff、決定 merge | 只能是你 |
+| 擁有者 | 決定做什麼；看 spec 的 diff，親手推出認可版本；親手 merge | 只能是你 |
 | 規格作者 | 寫 spec 和紅燈測試 | 實作者 |
 | 實作者 | 讓紅燈測試變綠 | 規格作者、審查者 |
-| 審查者 | review，你同意後執行 merge | 實作者 |
+| 審查者 | review，把合併指令準備好給你 | 實作者 |
 
 寫測試的和寫實作的必須分開，這是第 2 章「獨立驗證」的基礎：同一個 agent 自己出題又自己作答，測試只能證明它做了它以為的事。規格作者和審查者可以用同一家 provider 的模型：審查者是拿寫下來的 spec 去檢查實作者的程式，並不是在檢查自己的東西；spec 本身則由你在第 2 步的檢查點把關。
 
@@ -159,10 +159,10 @@ Issue 描述「這次要做什麼」，做完就關閉。spec 描述「系統現
    - 牽涉架構層級的選擇時，寫一篇 ADR。
    - 開 draft PR：描述寫 `Closes #N`，加上 `enhancement` 或 `bug` label。PR 在這時候就開，裡面只有 spec 和紅燈測試，還沒有任何實作。
    - **你的檢查點**：看 spec 的 diff，問自己「這就是我要的行為嗎？」這是整個流程裡改方向最便宜的時候，實作一行都還沒寫。
-   - 你同意之後，規格作者把你看過的那個 commit 推到 `spec/<分支名>`。這種分支只有你的帳號推得動（第 3 章），它是 spec 和驗收測試的認可版本：實作者看到它才開工，review 拿 PR 跟它比對（第 2 章第 3 點）。
+   - 你同意的話，自己把那個 commit 推到 `spec/<分支名>`：規格作者準備好指令，你執行並輸入 SSH key 的密碼。這種分支只有你的帳號推得動（第 3 章），它是 spec 和驗收測試的認可版本：實作者看到它才開工，review 拿 PR 跟它比對（第 2 章第 3 點）。
 3. **實作**（實作者，照 `AGENTS.md` 的 Implementing）：`spec/<分支名>` 存在才開工。拿到的是分支、spec 的 diff 和紅燈測試，不是 Issue 的文字。commit 推到同一個分支，PR 會跟著更新。不改 spec 和驗收測試，連新增一行也不行；自己的測試放在別的目錄，不引用編號。spec 沒講到的行為分兩種：使用者或其他元件看得到的（例如除不盡的錢歸誰），先停下來在 PR 留言問規格作者，同時繼續做不受影響的部分；規格作者把 requirement 和紅燈測試補在 `spec/<分支名>` 上，實作者 merge 進來再照著做。只影響內部的細節，實作者自己決定。測試全綠後，填好 PR 其餘的段落，把 draft 改成 ready。
 4. **Review**（審查者，`skills/review-pr`）：PR 改成 ready 之後才開始，第 2 章解釋清單每一項的理由。做完回報你：改了什麼、有什麼風險、看過的 commit SHA，以及比對時用的 spec SHA。一次只讓一個 PR 走完最後這段（跟上 main、檢查、回報、merge）：每合併一個 PR，其他 PR 都會落後 main，合併前做完的 review 得在更新後的 head 上重做。其他 PR 可以繼續實作。
-5. **Merge**：你說可以，審查者只合併他看過的那個 commit（第 3 章第 3 點），再刪掉 `spec/<分支名>`：它不是 PR 的分支，GitHub 不會自動刪。PR 沒合併就關掉時也一樣。
+5. **Merge**：你執行審查者準備好的指令。它只會合併審查者看過的那個 commit（第 3 章第 3 點），再刪掉 `spec/<分支名>`：它不是 PR 的分支，GitHub 不會自動刪。PR 沒合併就關掉時也要刪。
 6. **自動收尾**：因為有 `Closes #N`，Issue 自動關閉；有用 Project 的話，上面的項目會自動移到 Done。
 7. **手動驗收**：有 `(manual)` requirement 時，照追溯檢查列出的清單，在實機上驗收。沒通過就開新的 Issue。
 8. **發版**：GitHub Releases 會依 PR 的 label 分類，自動產生 release notes，你再改寫成使用者看得懂的摘要。
@@ -177,7 +177,7 @@ Issue 描述「這次要做什麼」，做完就關閉。spec 描述「系統現
 每個會改變行為的 Issue 一次
   ① 開始處理     ──→ write-spec（規格作者）：spec + 紅燈測試 → 開 draft PR → 你同意後推 spec/<分支名>
   ② 實作         ──→ 沒有 skill，照 AGENTS.md：推到同一個 PR，全綠後改成 ready
-  ③ PR 改成 ready ──→ review-pr（審查者）：檢查 → 回報你 → 你說可以才 merge
+  ③ PR 改成 ready ──→ review-pr（審查者）：檢查 → 回報你，附上合併指令 → 你執行
 ```
 
 PR 在實作之前就開，有兩個理由：spec 的 diff 就是派工單，也是你的檢查點，在 PR 裡看最清楚、可以直接留言；CI 從一開始就跑，draft 階段測試是紅的，全綠就代表做完。draft 狀態的 PR，GitHub 不允許 merge，所以不會誤合半成品。
@@ -264,7 +264,7 @@ Next 和 Later 的階段不開 Issue，細節留在 proposal。某個階段移�
 **什麼時候改**：
 - **只能用一家 provider**：退到「不同 session」，並由你親自看測試的 diff，補回少掉的那一層獨立性。
 - **有第二個人類加入**：打開 required approval、加上 CODEOWNERS（第 3 章）。
-- **不改變行為的改動**（錯字、文件、重構、套件更新）：跳過第 2 步，一個 session 改完、開 PR、讓 CI 跑；要不要另外開審查者的 session，由你決定。改到 spec 或驗收測試、但不改它們要求的內容時（例如改寫 spec 的措辭，或升級測試框架這類機械式改寫：每個測試的案例、斷言和編號都不變），不必紅燈測試和實作者 session，你也只要同意一次：你說可以合併，就同時認可了這些改動。agent 先用你的帳號把要合併的那個 commit 推成 `spec/<分支名>` 當認可版本，再照 `skills/review-pr` 合併；CI 照跑。
+- **不改變行為的改動**（錯字、文件、重構、套件更新）：跳過第 2 步，一個 session 改完、開 PR、讓 CI 跑；要不要另外開審查者的 session，由你決定。改到 spec 或驗收測試、但不改它們要求的內容時（例如改寫 spec 的措辭，或升級測試框架這類機械式改寫：每個測試的案例、斷言和編號都不變），不必紅燈測試和實作者 session，你也只要做一個決定：審查者在報告裡列出這些改動，你執行合併指令，就同時認可了它們，不必推 `spec/` 分支。
 
 ---
 
@@ -293,7 +293,7 @@ Next 和 Later 的階段不開 Issue，細節留在 proposal。某個階段移�
 **3. 獨立驗證。** spec 和驗收測試由規格作者寫，實作由實作者寫。要確認實作者沒動過規格作者的東西，靠兩件事：
 
 - **用路徑分所有權。** 驗收測試放在固定的目錄（預設 `tests/acceptance/`，寫在 `AGENTS.md`），只有規格作者能改；實作者自己的測試放在別的目錄，不引用編號，所以不會被追溯檢查當成證據。實作者可以乾淨合入 main 上已接受的改動，但自己對 `docs/specs/` 和驗收測試的任何修改都交回規格作者。只新增一行也算：在測試開頭加一行 `return`，或新增一個把受測函式 mock 掉的設定檔，都是「只新增」。
-- **一份實作者推不動的認可版本。** 你同意 spec 之後，規格作者把那個 commit 推到 `spec/<分支名>`，ruleset 讓這種分支只有你的帳號能建立、更新、刪除（第 3 章）。之後要補 spec，規格作者也是推到這個分支，實作者再 merge 進自己的分支。
+- **一份實作者推不動的認可版本。** 你同意 spec 之後，自己把那個 commit 推到 `spec/<分支名>`。ruleset 讓這種分支只有你的帳號能建立、更新、刪除（第 3 章），而你的推送要用有密碼的 SSH key，agent 做不到。之後要補 spec，也是規格作者準備 commit、你推上這個分支，實作者再 merge 進自己的分支。
 
 review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 比對 `docs/specs/` 和驗收測試的目錄：
 
@@ -306,11 +306,11 @@ review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 比對 `d
 
 有衝突就停下來：main 和 `spec/` 分支在 spec 或驗收測試上的衝突，由規格作者在 `spec/` 分支解決，再交給實作者合入；PR 更新 main 時的程式碼衝突由實作者處理。腳本不替人決定衝突的意思。
 
-沒有 `spec/` 分支的 PR，認可版本就是 main：head 不能改變這些檔案。不改要求內容的 spec 或驗收測試修改（措辭、測試框架升級），沿用第 1 章「不改變行為的改動」的做法建立認可版本。審查者先明確 fetch main，再從 `FETCH_HEAD` 讀取腳本；讀取成功才執行。驗收路徑由腳本自己從 main 的 `AGENTS.md` 讀，不經人手抄，因為 PR 改得到這兩個檔案，而少抄一個路徑不會有任何錯誤訊息。
+沒有 `spec/` 分支的 PR，認可版本就是 main：head 不能改變這些檔案。不改要求內容的 spec 或驗收測試修改（措辭、測試框架升級）沒有 `spec/` 分支，所以會被列出來；審查者在報告裡註明，你的合併就是認可（第 1 章「不改變行為的改動」）。審查者先明確 fetch main，再從 `FETCH_HEAD` 讀取腳本；讀取成功才執行。驗收路徑由腳本自己從 main 的 `AGENTS.md` 讀，不經人手抄，因為 PR 改得到這兩個檔案，而少抄一個路徑不會有任何錯誤訊息。
 
 腳本也擋掉幾種「其實沒比到」的情況：驗收路徑在 main、`spec/` 分支和 PR 裡都不存在（打錯字）；審查者 checkout 的不是 PR 現在的 head；名字被冒用，例如同名的 tag 或名字結尾相同的分支冒充 `origin/main` 或 `spec/` 分支，所以腳本和 skill 只用完整的 ref 名稱和 commit ID。每一種都有自我測試（`tests/test_spec_check.py`），細節在腳本的註解裡。
 
-這個比對證明的是：在檢查當下的 main 上，PR head 的 spec 和驗收測試，跟用 main 的合併設定算出的認可結果一致。合併前再跑一次，並確認 PR head 和 spec SHA 沒變；`ok` 也列出這次用的 main SHA。它不證明你真的同意過（規格作者用的也是你的帳號），不證明測試合理、有跑，也不證明程式符合 spec；這些靠第 1 章第 2 步你的檢查點、CI、追溯檢查和 review。實作者拿到你的憑證時，這道保護也會失效（附錄 C 第 5 點）。
+這個比對證明的是：在檢查當下的 main 上，PR head 的 spec 和驗收測試，跟用 main 的合併設定算出的認可結果一致。合併前再跑一次，並確認 PR head 和 spec SHA 沒變；`ok` 也列出這次用的 main SHA。`spec/` 分支只有你親手推得上去（第 3 章第 2 點），所以比對的基準一定經過你同意。它不證明測試合理、有跑，也不證明程式符合 spec；這些靠第 1 章第 2 步你的檢查點、CI、追溯檢查和 review。實作者拿到你的憑證時，這道保護也會失效（附錄 C 第 5 點）。
 
 它要防的是日常會發生的事：實作者順手改了測試、合併時弄丟東西、審查者打錯路徑。刻意對付審查流程的實作者不在它的範圍內，例如改掉 CI 設定讓測試不跑；那要靠審查者逐行讀設定檔的改動（`skills/review-pr` 第 7 步）和第 3 章的隔離。
 
@@ -337,7 +337,7 @@ review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 比對 `d
 
 **什麼時候改**：
 - **測試分散在多個 CI job**（例如 monorepo 每個 app 一個 job）：每個 job 把 `reports/junit/` 上傳成 artifact，另外開一個 job 下載全部之後，再跑追溯檢查。這時要把 `check.sh` 裡的追溯檢查移到最後那個 job：每個 job 只看得到自己的報告，別的 job 測過的編號都會被當成 untested。
-- **審查者漏跑過 spec-check，或常有不經審查者的 PR**：把它加進 CI 當 required check，用 main 的腳本比對 PR head。要點：checkout 指定 `pull_request.head.sha` 和 `fetch-depth: 0`，否則 HEAD 對不上、`merge-base` 誤判；不能用 `if:` 跳過 draft，被跳過的 job 算通過；分支名用 `env:` 傳進 `run:`。它只擋「忘了跑」：綠燈綁在 head 上，`spec/` 分支更新後不會重跑，所以合併前仍要照 review-pr 第 3 步本機跑一次，不改要求內容的 spec 或驗收測試 PR，推完 `spec/` 分支也要 rerun。
+- **審查者漏跑過 spec-check，或常有不經審查者的 PR**：把它加進 CI 當 required check，用 main 的腳本比對 PR head。要點：checkout 指定 `pull_request.head.sha` 和 `fetch-depth: 0`，否則 HEAD 對不上、`merge-base` 誤判；不能用 `if:` 跳過 draft，被跳過的 job 算通過；分支名用 `env:` 傳進 `run:`。它只擋「忘了跑」：綠燈綁在 head 上，`spec/` 分支更新後不會重跑，所以合併前仍要照 review-pr 第 3 步本機跑一次，不改要求內容的 spec 或驗收測試 PR 沒有 `spec/` 分支，會被擋下，要先由你推出 `spec/` 分支再 rerun。
 - **有人提議「改了程式卻沒改 docs 就讓 CI 失敗」**：預設不做。程式碼通常按技術分層（controller、service、entity），從改了哪個檔案，看不出該對應哪份 spec；重構和修 bug 大多也不用改 spec，誤報一多就沒人看了。行為改了有沒有跟著改 spec，交給 review。
 - **專案很小**：只要會長期維護，就照樣寫 spec，規則少的時候寫起來成本也最低。沒有 spec 時，追溯檢查和 spec-check 都會直接通過，卻什麼都沒檢查到。做完就丟的原型是第 0 章的 0 級，整套省略。
 
@@ -358,7 +358,7 @@ review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 比對 `d
 | `spec-branches` | `spec/` 開頭的分支，只有繞過名單上的人能建立、更新、刪除 | Repository admin，直接 push |
 | `tags` | 所有的 tag，只有繞過名單上的人能建立、移動、刪除 | Repository admin，直接 push |
 
-效果：實作者能推分支、開 PR，但不能 merge，推不動 `spec/` 分支（第 2 章第 3 點的認可版本），也不能建立、移動、刪除任何 tag（第 6 點的基準版本）；你（以及用你的身分操作的規格作者和審查者）能 merge，但只要 `check` 沒過，誰都合不進去。
+效果：實作者能推分支、開 PR，但不能 merge，推不動 `spec/` 分支（第 2 章第 3 點的認可版本），也不能建立、移動、刪除任何 tag（第 6 點的基準版本）；只有你能 merge，而且只要 `check` 沒過，你也合不進去。
 
 `spec-branches` 的 pattern 是 `spec/**/*`，不是 `spec/**`：GitHub 的匹配規則裡 `*` 不跨 `/`，`spec/**` 只蓋得到 `spec/feature`，蓋不到 `spec/codex/feature`（[GitHub 的說明](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/creating-rulesets-for-a-repository#using-fnmatch-syntax)）。`spec/**/*` 在測試 repo 實測過：bot 用 git 或 REST API 建立、更新、強制更新、刪除 `spec/` 分支，單層和巢狀的名稱都被拒絕；你的帳號都做得到。
 
@@ -384,12 +384,13 @@ review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 比對 `d
 
 方案限制：public repo 用免費方案就有 ruleset；private repo 要 GitHub Pro 以上。沒有 ruleset，第 2、3 章就不成立：bot 能 merge、能直接推 main、能推 `spec/` 分支、能移 tag，剩下的只有 `AGENTS.md` 的文字規則。免費方案的 private repo，要嘛轉 public，要嘛升 Pro。
 
-**2. 實作者的身分：一個機器帳號（bot）。** 以 collaborator（write 權限）的身分加入 repo。規格作者和審查者用你的身分操作。bot 更新不了 main，也推不動 `spec/` 分支；第 2 章的獨立驗證靠的就是後面這一點。
+**2. 兩個身分：agent 一律用 bot，只有你做得到的事由你親手做。** bot 以 collaborator（write 權限）的身分加入 repo，所有 agent session 都用它，包括規格作者和審查者。bot 更新不了 main，也推不動 `spec/` 分支；第 2 章的獨立驗證靠的就是後面這一點。只有你做得到的事（推出或刪除 `spec/` 分支、合併、修改 GitHub 設定），由 agent 準備好指令，你自己執行。這樣認可和合併都是你親手做的動作，不只是一句「可以」。
 - 個人帳號底下的 repo，collaborator 不能用 fine-grained token，只能用 classic 的 `repo` scope。所以權限要靠 ruleset 限制，不能靠 token。
-- bot 的憑證只放進實作者的環境，例如讓 `GH_CONFIG_DIR` 指向一個只有 bot 的設定目錄，並執行 `gh auth setup-git` 讓 git 也透過 gh 取得憑證；否則 git 會從系統的憑證管理（例如 macOS 鑰匙圈）拿你的帳號，實作者 push 時用的就是你的身分。實作者開工前會檢查 gh 和 git 都不是 owner 的帳號（`AGENTS.md` 的 Implementing）：用你的帳號實作，ruleset 的保護就全部失效。
-- 在同一個 OS 使用者底下，實作者讀得到你的 keychain。環境隔離只防得了「不小心」，防不了「被誘導」。要真正隔離，就讓實作者跑在容器裡。
+- gh 預設登入 bot，並把你的帳號從預設設定登出，否則 agent 用 `gh auth switch` 就能換回你。執行 `gh auth setup-git`，讓 git 走 https 時也用 gh 的帳號；不然 git 會從系統的憑證管理（例如 macOS 鑰匙圈）拿你的帳號。每個 agent session 開工前都會檢查 gh 和 git 都不是 owner（`AGENTS.md` 的 Roles）。
+- 你的推送用你的 SSH key（專案裡的 `owner` remote）。key 要有密碼，而且不要加進 ssh-agent 或鑰匙圈：每次都要你輸入密碼，agent 就用不了。合併和 GitHub 設定走 API，用你另外一份 gh 設定（`GH_CONFIG_DIR=~/.config/gh-owner`）。
+- 在同一個 OS 使用者底下，agent 讀得到那份 gh 設定和你的 keychain。環境隔離只防得了「不小心」，防不了「被誘導」。要真正隔離，就讓 agent 跑在容器裡。
 
-**3. Merge 時釘住 commit。** 審查者合併時用 `--match-head-commit` 指定看過的 commit，並加上 `--admin`（完整指令在 `skills/review-pr`）。`--admin` 是必要的：只有你能更新 main，靠的是 `main-merge` 的繞過名單，而 `gh` 不加 `--admin` 就不會使用這個繞過（[cli/cli#13388](https://github.com/cli/cli/issues/13388)，已在測試 repo 實測）。它也是安全的：`main-integrity` 沒有人能繞過，所以 `--admin` 跳不過失敗的 `check`（實測：紅燈的 PR 加 `--admin` 會被拒絕）。`--match-head-commit`：如果 review 之後實作者又推了新的 commit，merge 會失敗，沒看過的東西就不會被合進去。
+**3. Merge 時釘住 commit。** 合併指令由審查者準備、你執行，用 `--match-head-commit` 指定審查者看過的 commit，並加上 `--admin`（完整指令在 `skills/review-pr`）。`--admin` 是必要的：只有你能更新 main，靠的是 `main-merge` 的繞過名單，而 `gh` 不加 `--admin` 就不會使用這個繞過（[cli/cli#13388](https://github.com/cli/cli/issues/13388)，已在測試 repo 實測）。它也是安全的：`main-integrity` 沒有人能繞過，所以 `--admin` 跳不過失敗的 `check`（實測：紅燈的 PR 加 `--admin` 會被拒絕）。`--match-head-commit`：如果 review 之後實作者又推了新的 commit，merge 會失敗，沒看過的東西就不會被合進去。
 
 **4. 分支和 Issue。** 用 `gh issue develop <N> --checkout` 建分支，PR 描述寫 `Closes #N`。從這種分支開的 PR 會自動連到 Issue，但官方只保證 `Closes #N` 這類關鍵字會在 merge 時關閉 Issue，所以兩個都要。沒有 Issue 的小改動（錯字、文件、套件更新）不會經過 `write-spec`，所以 `AGENTS.md` 有一條一直有效的規則：每個改動都透過 PR 進 main，沒有 Issue 的 PR 寫 `No issue: <原因>`，讓 review 的人看到為什麼沒有。
 
@@ -584,7 +585,7 @@ DO-178C 假設開發者是人，所以沒有問下面這幾題。它們是 agent
 | 橫向追溯到危害分析 | 把「金額算錯」「資料遺失」直接寫成 requirement，跟其他規則一樣追溯和測試 | 丟 |
 | 追溯矩陣、驗證交叉矩陣 | 需要時跑一次追溯檢查，當場算出來，不存成文件。手寫的矩陣，本身就是一份會過期的文件 | 丟文件，留能力 |
 | 可疑連結 | 用版本號：意思改了就升版；已通過的測試若仍引用舊版本，追溯檢查會失敗。規格作者仍須搜尋並更新所有引用（第 5 章）；「意思有沒有變」也要靠人判斷（附錄 C） | 留便宜版 |
-| 基準版本、變更委員會 | git tag 加上 PR；你說可以 merge，就是批准 | 用現有的取代 |
+| 基準版本、變更委員會 | git tag 加上 PR；你親手 merge，就是批准 | 用現有的取代 |
 | 問題報告 | Issue。bug 的 Issue Form 要填寫壞掉的是哪一條 requirement | 用現有的取代 |
 | 結構覆蓋率門檻 | 只對第 0 章的關鍵區域設分支覆蓋率門檻，只升不降，其他地方不設。門檻如果套在全部程式上，很容易被湊數；MC/DC 的成本是為最高等級設計的 | 只用在高風險區域 |
 | 獨立性 | 規格作者寫 spec 和測試，實作者寫程式，你決定 merge；角色之間至少分開 session，最好用不同 provider 的模型（第 1 章）；認可版本由 ruleset 保護，review 用 `spec-check.sh` 比對（第 2 章）。這是最值錢的一項，在 agent 開發裡成本很低 | 留 |
