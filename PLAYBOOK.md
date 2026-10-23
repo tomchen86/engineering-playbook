@@ -150,7 +150,7 @@ Issue 描述「這次要做什麼」，做完就關閉。spec 描述「系統現
 
 流程：
 
-0. **想法**：有用 GitHub Project 的話，建一個 draft item（只存在 Project 裡、還不是 Issue 的項目）；沒有的話，好幾個階段的大方向，討論後寫成 proposal（見下方）；小想法等決定要做再開 Issue。
+0. **想法**：有用 GitHub Project 的話，建一個 draft item（只存在 Project 裡、還不是 Issue 的項目）；沒有的話，大方向討論後寫進 roadmap，談出做法的階段各寫一份 proposal（見下方）；小想法等決定要做再開 Issue。
 1. **決定要做，開 Issue**（用 Issue Form）：目標、驗收條件（用 EARS 句子寫，之後原樣搬進 spec）、影響哪些 capability、不做什麼。大功能拆成 sub-issues，每個 sub-issue 各走一次第 2～6 步。有用 Project 的話，你把它排進 Ready，才算准許開工。
 2. **寫 spec 和紅燈測試**（規格作者，`skills/write-spec`）：
    - 開一個連到 Issue 的分支，它會出現在 Issue 的 Development 欄位。origin 上不能有同名的 `spec/<分支名>` 遺留，否則實作者會把它當成這個 PR 的認可版本。
@@ -210,19 +210,19 @@ PR 在實作之前就開，有兩個理由：spec 的 diff 就是派工單，也
 
 **skills/**：只在某個時刻用得到的步驟，放在 repo 根目錄的 `skills/`，一個 skill 一個資料夾，裡面是一個照 Agent Skills 標準寫的 `SKILL.md`。starter 附了四個：`record-plan`（記錄規劃）、`start-phase`（開始一個階段）、`write-spec`（寫 spec）、`review-pr`（review 和 merge）。各家工具讀 skill 的資料夾不同，例如 Claude Code 讀 `.claude/skills/`、Codex 讀 `.agents/skills/`；用哪個工具，就把 `skills/` symlink 到它讀的位置。
 
-**Roadmap**：`docs/roadmap.md` 是方向的索引，格式是 Now / Next / Later / Not doing。每個階段只寫一行：為什麼放在這個位置，加上一個連結。
-- **Now 連到 milestone。** 一個階段一個 milestone，可以設截止日期、在裡面拖拉排序；大功能用 parent issue 加 sub-issues。milestone 的描述寫這個階段的**驗證問題**：做完之後要回答什麼，才決定要不要往下走。功能層的「怎樣算完成」，寫在各個 Issue 的驗收條件。
-- **Next 和 Later 連到 proposal 裡對應的段落。** 細節都在 proposal。
+**Roadmap**：`docs/roadmap.md` 是方向的索引，格式是 Now / Next / Later / Not doing。每個階段只寫一行：為什麼放在這個位置，加上連結。
+- **Now 連到 milestone 和 proposal。** 一個階段一個 milestone，可以設截止日期、在裡面拖拉排序；大功能用 parent issue 加 sub-issues。milestone 的描述寫這個階段的**驗證問題**：做完之後要回答什麼，才決定要不要往下走。功能層的「怎樣算完成」，寫在各個 Issue 的驗收條件。
+- **Next 和 Later 有 proposal 才連。** 只是列出來、還沒討論的階段，只有一行。
 - **階段做完，就把那一行刪掉。** 歷史留在 git 裡。收尾的步驟（回答驗證問題、關閉 milestone、改 roadmap）寫在 `skills/start-phase` 的 Closing a phase。
 
 它放在 repo 裡，因為 agent 需要讀它：寫 spec 和 review 時，常要考慮「之後會往哪走」。`roadmap.md` 不寫狀態、不寫完成日期、不列功能清單，只在方向改變時才改。一定要寫 Not doing，它能擋住 agent 順手多做的東西。roadmap 由你決定，agent 沒被要求就不改。
 
-**Proposal（提案）**：規劃好幾個階段的討論結果，寫成 `docs/proposals/YYYY-MM-DD-<主題>.md`。規則參考 Rust 語言的 [RFC 流程](https://github.com/rust-lang/rfcs)：
+**Proposal（提案）**：一個階段的計畫，一個階段一份，開工前一定要有，寫成 `docs/proposals/YYYY-MM-DD-<階段>.md`。換 session 或換 agent 時，靠它把討論接下去。規則參考 Rust 語言的 [RFC 流程](https://github.com/rust-lang/rfcs)：
 - **合併就是接受，而且整份一起接受。** proposal 用 PR 提出，你合併它，就代表整份被接受。不同意的部分，合併前刪掉或移到它的「不做」段落。（Rust 的 RFC 也是以 PR 提出，經過最終評論期後被合併或關閉。）
 - **還沒決定的，一律寫在「未決問題」。** 所以除了這一段，其他內容都已經決定。（Rust 的 RFC 範本有同樣的 Unresolved questions 段落。）
 - **接受之後就凍結。** 計畫有大改時，寫一份新的 proposal，舊的只在狀態行註明被哪一份取代。（Rust 的規定：RFC 接受後原則上不再大幅修改，大的改動寫成新的 RFC，並在原本那份加註。）
 - **接受不代表排定時程。** 順序由 `roadmap.md` 決定，開工從 milestone 開始。（Rust 同樣說明：RFC 被接受，不代表它的實作有優先順序，也不代表有人被指派去做。）
-- **同一個 PR 更新 `roadmap.md`。** proposal 裡的每個階段，在 roadmap 上各有一行，連到它的段落，所以接受之後，每個階段都已經在 roadmap 上。這一點跟 Rust 不同：Rust 替每個被接受的 RFC 開一張追蹤用的 Issue；一個人的 repo，用 roadmap 上的那一行當索引就夠了。
+- **同一個 PR 更新 `roadmap.md`。** proposal 的階段在 roadmap 上有一行連到它，所以接受之後，它已經在 roadmap 上。這一點跟 Rust 不同：Rust 替每個被接受的 RFC 開一張追蹤用的 Issue；一個人的 repo，用 roadmap 上的那一行當索引就夠了。
 
 proposal 是未來式：它是已經決定的方向，但不是現況，也不是工作指令。
 
@@ -234,16 +234,16 @@ proposal 是未來式：它是已經決定的方向，但不是現況，也不�
 
 要用的話，設定越少越好：一個使用者層級、private 的 Project；只用內建的 Status 欄位，加一個 Ready 選項（Todo → Ready → In progress → Done）；一個 Board 視圖，在 Ready 欄裡拖拉排序；自動化只開兩個：新的 Issue 自動加入並放在 Todo（絕對不會自動變成 Ready），Issue 關閉時自動移到 Done。
 
-**規劃好幾個階段時**：越近的階段寫得越細，越遠的寫得越粗。專案管理裡這叫 rolling wave planning（滾動式規劃）：遠的階段先記大方向，快開始時才展開成細項。討論的結果分開放：
+**規劃好幾個階段時**：越近的階段寫得越細，越遠的寫得越粗。專案管理裡這叫 rolling wave planning（滾動式規劃）：遠的階段先在 roadmap 上記一行，談出做法時寫 proposal，開工時才展開成 Issue。討論的結果分開放：
 
 | 討論結果裡的東西 | 放在哪裡 |
 |---|---|
-| 整份規劃：各階段做什麼、大概怎麼做、每個階段的驗證問題、跨階段的原則、不做什麼、還沒決定的問題 | 一份 proposal |
-| 各階段的先後順序 | `roadmap.md`，每個階段一行，連到 proposal 的段落 |
-| 現在這個階段（Now）的功能 | 一個 milestone，每個功能一張 parent issue。照 proposal 裡那一段準備，可以寫得很粗，第 2 步寫 spec 時才改寫成精確的 requirement |
+| 一個階段的計畫：做什麼、大概怎麼做、驗證問題、開工後程式要遵守的原則、不做什麼、還沒決定的問題 | 這個階段的 proposal。只是列出來、還沒討論的階段不寫 |
+| 各階段的先後順序 | `roadmap.md`，每個階段一行，有 proposal 就連到它 |
+| 現在這個階段（Now）的功能 | 一個 milestone，每個功能一張 parent issue。照它的 proposal 準備，可以寫得很粗，第 2 步寫 spec 時才改寫成精確的 requirement |
 | 現在寫的程式就要遵守的決定 | ADR，屬於現在式 |
 
-Next 和 Later 的階段不開 Issue，細節留在 proposal。某個階段移到 Now 時：規格作者照 proposal 裡那一段，準備 milestone 和 parent issue 的草稿，你同意後才建立；那一段相關的未決問題，在這時候決定，結果寫進 Issue，架構層級的另外寫 ADR；roadmap 那一行的連結，從 proposal 改成 milestone。討論過程本身不存進 repo。記錄規劃時照 `skills/record-plan` 做，階段移到 Now 時照 `skills/start-phase` 做。
+Next 和 Later 的階段不開 Issue，談好的細節留在 proposal。某個階段移到 Now 時，它一定要有 proposal，還沒有就先寫；規格作者照它準備 milestone 和 parent issue 的草稿，你同意後才建立；它的未決問題在這時候決定，結果寫進 Issue，架構層級的另外寫 ADR；roadmap 那一行加上 milestone 的連結，proposal 的連結留著。討論過程本身不存進 repo：談出來的決定寫進 proposal，還沒決定的寫進它的「未決問題」，換 session 時從那裡接著談。記錄規劃時照 `skills/record-plan` 做，階段移到 Now 時照 `skills/start-phase` 做。
 
 **改設計時**：先判斷改的是哪一種，每一種通常只動一兩個地方：
 
