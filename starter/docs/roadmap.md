@@ -4,7 +4,7 @@ What we are building toward, and in what order. One line per phase: why it sits 
 
 ## Goal
 
-<Who it is for and what problem it solves, in two sentences.>
+<Who it is for and what problem it solves, in a few sentences.>
 
 ## Now
 
