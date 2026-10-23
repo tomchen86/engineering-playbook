@@ -144,7 +144,7 @@ Issue 描述「這次要做什麼」，做完就關閉。spec 描述「系統現
 | 其次：同一家 provider，不同 session | 每個角色開一個新的 session | 實作者看不到規格作者的思考過程，只能照寫下來的東西做；審查者也不會沿用實作者的假設 |
 | 最低：同一個 session | 一個 agent 從頭做到尾 | 獨立性就沒了。只適合第 0 章的原型，或不改變行為的改動（錯字、文件、重構、套件更新）。這個例外也寫在 `AGENTS.md` 的 Roles，agent 才知道小改動不必分角色 |
 
-不管分開到哪一種程度，角色之間都只透過 repo 裡的東西交接（spec、測試、PR），不靠對話記憶。這也是派工單要用 spec 的 diff 和紅燈測試的原因。
+不管分開到哪一種程度，角色之間都只透過 repo 裡的東西交接（spec、測試、PR），不靠對話記憶。session 的角色由你在任務裡指定；沒指定時，它先問你，不自己猜（`AGENTS.md` 的 Roles）。這也是派工單要用 spec 的 diff 和紅燈測試的原因。
 
 這兩個現象的研究：[Correlated Errors in Large Language Models](https://arxiv.org/abs/2506.07962)（ICML 2025）、[LLM Evaluators Recognize and Favor Their Own Generations](https://proceedings.neurips.cc/paper_files/paper/2024/hash/7f1f0218e45f5414c79c0679633e47bc-Abstract-Conference.html)（NeurIPS 2024）。
 
