@@ -146,6 +146,8 @@ Issue 描述「這次要做什麼」，做完就關閉。spec 描述「系統現
 
 不管分開到哪一種程度，角色之間都只透過 repo 裡的東西交接（spec、測試、PR），不靠對話記憶。session 的角色由你在任務裡指定；沒指定時，它先問你，不自己猜（`AGENTS.md` 的 Roles）。這也是派工單要用 spec 的 diff 和紅燈測試的原因。
 
+交接都留在 PR 上（`AGENTS.md` 的 PR comments）：進度、提問和審查報告都寫成 PR 留言，開頭標 `[角色→角色]`，因為所有 agent 共用 bot 帳號，不標就分不出誰對誰說話。給你的只有摘要和連結；只有你能執行的指令只給你，不放進留言，因為 public repo 誰都能留言，你不該養成從留言複製指令的習慣。等另一個角色時，能訂閱 PR 的工具就訂閱：Claude Code 的 PR 監看會被留言、CI 失敗和合併衝突叫醒，但不會被 push 或標成 ready 叫醒，所以進度一定要留言。不能訂閱的工具改排定時檢查，例如 Codex 的自動化，最多 30 分鐘。每個 session 用自己的工作資料夾（`AGENTS.md` 第 7 條），切分支才不會打亂別人的工作。
+
 這兩個現象的研究：[Correlated Errors in Large Language Models](https://arxiv.org/abs/2506.07962)（ICML 2025）、[LLM Evaluators Recognize and Favor Their Own Generations](https://proceedings.neurips.cc/paper_files/paper/2024/hash/7f1f0218e45f5414c79c0679633e47bc-Abstract-Conference.html)（NeurIPS 2024）。
 
 流程：
@@ -161,7 +163,7 @@ Issue 描述「這次要做什麼」，做完就關閉。spec 描述「系統現
    - **你的檢查點**：看 spec 的 diff，問自己「這就是我要的行為嗎？」這是整個流程裡改方向最便宜的時候，實作一行都還沒寫。
    - 你同意的話，自己把那個 commit 推到 `spec/<分支名>`：規格作者準備好指令，你執行並輸入 SSH key 的密碼。這種分支只有你的帳號推得動（第 3 章），它是 spec 和驗收測試的認可版本：實作者看到它才開工，review 拿 PR 跟它比對（第 2 章第 3 點）。
 3. **實作**（實作者，照 `AGENTS.md` 的 Implementing）：`spec/<分支名>` 存在才開工。拿到的是分支、spec 的 diff 和紅燈測試，不是 Issue 的文字。commit 推到同一個分支，PR 會跟著更新。不改 spec 和驗收測試，連新增一行也不行；自己的測試放在別的目錄，不引用編號。spec 沒講到的行為分兩種：使用者或其他元件看得到的（例如除不盡的錢歸誰），先停下來在 PR 留言問規格作者，同時繼續做不受影響的部分；規格作者把 requirement 和紅燈測試補在 `spec/<分支名>` 上，實作者 merge 進來再照著做。只影響內部的細節，實作者自己決定。測試全綠後，填好 PR 其餘的段落，把 draft 改成 ready。
-4. **Review**（審查者，`skills/review-pr`）：PR 改成 ready 之後才開始，第 2 章解釋清單每一項的理由。做完回報你：改了什麼、有什麼風險、看過的 commit SHA，以及比對時用的 spec SHA。一次只讓一個 PR 走完最後這段（跟上 main、檢查、回報、merge）：每合併一個 PR，其他 PR 都會落後 main，合併前做完的 review 得在更新後的 head 上重做。其他 PR 可以繼續實作。
+4. **Review**（審查者，`skills/review-pr`）：PR 改成 ready 之後才開始，第 2 章解釋清單每一項的理由。做完把報告留言在 PR 上：改了什麼、有什麼風險、看過的 commit SHA，以及比對時用的 spec SHA；給你的是摘要、連結和合併指令。一次只讓一個 PR 走完最後這段（跟上 main、檢查、回報、merge）：每合併一個 PR，其他 PR 都會落後 main，合併前做完的 review 得在更新後的 head 上重做。其他 PR 可以繼續實作。
 5. **Merge**：你執行審查者準備好的指令。它只會合併審查者看過的那個 commit（第 3 章第 3 點），再刪掉 `spec/<分支名>`：它不是 PR 的分支，GitHub 不會自動刪。PR 沒合併就關掉時也要刪。
 6. **自動收尾**：因為有 `Closes #N`，Issue 自動關閉；有用 Project 的話，上面的項目會自動移到 Done。
 7. **手動驗收**：有 `(manual)` requirement 時，照追溯檢查列出的清單，在實機上驗收。沒通過就開新的 Issue。
@@ -177,7 +179,7 @@ Issue 描述「這次要做什麼」，做完就關閉。spec 描述「系統現
 每個會改變行為的 Issue 一次
   ① 開始處理     ──→ write-spec（規格作者）：spec + 紅燈測試 → 開 draft PR → 你同意後推 spec/<分支名>
   ② 實作         ──→ 沒有 skill，照 AGENTS.md：推到同一個 PR，全綠後改成 ready
-  ③ PR 改成 ready ──→ review-pr（審查者）：檢查 → 回報你，附上合併指令 → 你執行
+  ③ PR 改成 ready ──→ review-pr（審查者）：檢查 → 報告留在 PR，摘要和合併指令給你 → 你執行
 ```
 
 PR 在實作之前就開，有兩個理由：spec 的 diff 就是派工單，也是你的檢查點，在 PR 裡看最清楚、可以直接留言；CI 從一開始就跑，draft 階段測試是紅的，全綠就代表做完。draft 狀態的 PR，GitHub 不允許 merge，所以不會誤合半成品。
