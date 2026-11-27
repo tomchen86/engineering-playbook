@@ -15,4 +15,4 @@ Closes #
 
 ## Verification
 
-<!-- Implementer: CI covers automated tests; list any manual checks you ran. -->
+<!-- Implementer: CI covers automated tests; list any manual checks you ran. For each check you skipped, say who decided to skip it and on which date. End with "Not verified:" and what nobody checked, or "None". -->
