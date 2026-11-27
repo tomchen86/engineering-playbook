@@ -251,7 +251,7 @@ class SpecCheck(unittest.TestCase):
             git(self.repo, "push", "-q", "origin", f"refs/tags/{name}")
         review = self.tmp / "review"
         git(review, "fetch", "-q", "--tags", "origin", "+refs/heads/spec/codex/feat:refs/remotes/origin/spec/codex/feat")
-        for name in ("skills/write-spec/SKILL.md", "AGENTS.md"):
+        for name in ("skills/write-spec/SKILL.md", "skills/implement/SKILL.md"):
             with self.subTest(document=name):
                 source = (SCRIPT.parents[1] / name).read_text()
                 command = re.search(r"[Ww]ork order is `([^`]+)`", source).group(1).replace("<branch>", "codex/feat")

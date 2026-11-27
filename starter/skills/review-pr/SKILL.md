@@ -7,7 +7,11 @@ description: Review a pull request before merge, and merge only the reviewed com
 
 Check the PR out in its own worktree so your other work stays untouched: `git worktree add --detach ../review-<N>`, then run `gh pr checkout <N> --detach` inside it.
 
-Take one PR at a time through the final stretch (update, check, report, merge). Each merge leaves every other open PR behind main, and a review finished before that merge has to be redone on the updated head. Other PRs can keep being implemented meanwhile.
+Take one PR at a time through the final stretch (update, check, report, merge). Each merge leaves every other open PR behind main. Other PRs can keep being implemented meanwhile.
+
+## Spec review
+
+On a draft PR with no `spec/<branch>`, review once, without running tests or waiting for CI: the rules are clear and contradict neither each other nor the issue, each rule has a test that really checks it, and version bumps are complete and collide with no other open PR. Report in one PR comment, what must change first. The owner reads your report to decide whether to publish the spec. The implementation review, in this same session, sees the fixes. When the spec author asks you to look at its fixes sooner, or at a commit on top of `spec/<branch>`, read what changed since the commit you reviewed, by the same measures.
 
 ## Checklist
 
@@ -35,6 +39,20 @@ GH_CONFIG_DIR=~/.config/gh-owner gh pr merge <N> --squash --admin --match-head-c
 git push owner --delete refs/heads/spec/<branch>
 ```
 
-Leave out the second line when there is no spec branch. `--admin` is required, since only the owner may update main, and safe: it cannot skip a failing `check` or merge a branch behind main. If the head moved after the review, the merge fails; if the PR fell behind main, update it as in step 1, review the new commits, and report again.
+Leave out the second line when there is no spec branch. `--admin` is required, since only the owner may update main, and safe: it cannot skip a failing `check` or merge a branch behind main. If the head moved after the review, the merge fails; if the PR fell behind main, update it as in step 1 and run step 3 again. Review again only what these print (its own new commits, hand edits in its merges), then give the owner the commands with the new SHA:
+
+```bash
+git fetch -q --no-tags origin refs/heads/main
+git log --no-merges --oneline <reviewed SHA>..HEAD ^FETCH_HEAD
+git log --first-parent --merges --remerge-diff --format= <reviewed SHA>..HEAD
+```
 
 Afterwards, remove the review worktree: `git worktree remove ../review-<N>`. When a PR is closed without merging, give the owner the second line for its spec branch.
+
+## Dependabot's PRs
+
+A PR that Dependabot opens differs in three ways:
+
+- Step 1: bring it up to date by commenting only `@dependabot rebase`, never with `gh pr update-branch`. A commit from anyone else on its branch stops Dependabot from updating the PR.
+- Step 2: its description is release notes, and Dependabot owns it. Add `--body "No issue: <reason>"` to the merge command instead.
+- A passing `check` has not run the actions used only by workflows that PRs do not trigger. Say in the report that their first run comes after the merge.

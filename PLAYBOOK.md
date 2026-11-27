@@ -146,7 +146,9 @@ Issue 描述「這次要做什麼」，做完就關閉。spec 描述「系統現
 
 不管分開到哪一種程度，角色之間都只透過 repo 裡的東西交接（spec、測試、PR），不靠對話記憶。session 的角色由你在任務裡指定；沒指定時，它先問你，不自己猜（`AGENTS.md` 的 Roles）。這也是派工單要用 spec 的 diff 和紅燈測試的原因。
 
-交接都留在 PR 上（`AGENTS.md` 的 PR comments）：進度、提問和審查報告都寫成 PR 留言，開頭標 `[角色→角色]`，因為所有 agent 共用 bot 帳號，不標就分不出誰對誰說話。給你的只有摘要和連結；只有你能執行的指令只給你，不放進留言，因為 public repo 誰都能留言，你不該養成從留言複製指令的習慣。等另一個角色時，能訂閱 PR 的工具就訂閱：Claude Code 的 PR 監看會被留言、CI 失敗和合併衝突叫醒，但不會被 push 或標成 ready 叫醒，所以進度一定要留言。不能訂閱的工具改排定時檢查，例如 Codex 的自動化，最多 30 分鐘。每個 session 用自己的工作資料夾（`AGENTS.md` 第 7 條），切分支才不會打亂別人的工作。
+交接都留在 PR 上（`AGENTS.md` 的 PR comments）：進度、提問和審查報告都寫成 PR 留言，開頭標 `[角色→角色]`，因為所有 agent 共用 bot 帳號，不標就分不出誰對誰說話。給你的只有摘要和連結；只有你能執行的指令只給你，不放進留言，因為 public repo 誰都能留言，你不該養成從留言複製指令的習慣。等另一個角色時，能訂閱 PR 的工具就訂閱：Claude Code 的 PR 監看會被留言、CI 失敗和合併衝突叫醒，但不會被 push 或標成 ready 叫醒，看起來也不會被自己帳號的留言叫醒。所有 session 都用 bot 帳號，所以一個 session 的留言可能叫不醒另一個：留言之後，還要直接通知對方，例如用 Claude Code 的 SendMessage；留言仍然要寫，它是 PR 上的紀錄。不能訂閱的工具改排定時檢查，例如 Codex 的自動化，最多 30 分鐘。每個 session 用自己的工作資料夾（`AGENTS.md` 第 7 條），切分支才不會打亂別人的工作。
+
+很多 session 共用一台機器時（`AGENTS.md` 第 8 條），重的工作一次只跑一個：整套測試、建置、模擬器。開始前先看負載，高於核心數或別的 session 正在跑重的工作，就等一下再看。兩個重工作同時跑，兩邊都變慢，逾時和時間相關的測試會無故失敗，失敗的人還會以為是自己的程式壞了。裝置（模擬器、資料庫容器這類）只用自己開的或被指定的；共用的不停、不刪，因為別的 worktree 可能正在用。這也是 session 在本機只跑改到的檢查、完整檢查交給 CI 的原因之一（第 2 章第 1 點）。
 
 這兩個現象的研究：[Correlated Errors in Large Language Models](https://arxiv.org/abs/2506.07962)（ICML 2025）、[LLM Evaluators Recognize and Favor Their Own Generations](https://proceedings.neurips.cc/paper_files/paper/2024/hash/7f1f0218e45f5414c79c0679633e47bc-Abstract-Conference.html)（NeurIPS 2024）。
 
@@ -160,16 +162,18 @@ Issue 描述「這次要做什麼」，做完就關閉。spec 描述「系統現
    - 寫引用編號的測試（驗收測試），放在 `AGENTS.md` 指定的目錄，這時測試是紅的。先把邊界情況寫進去：除不盡、空值、零、上限、重複。衍生規則大多從這些地方長出來（第 2 章）。測試打在元件對外的邊界（HTTP、CLI、匯出的 API），不打內部；邊界還不存在時補最小的 stub，讓紅燈是斷言失敗、不是建置失敗，否則 `check.sh` 停在編譯，追溯檢查會把所有編號列成 untested。
    - 牽涉架構層級的選擇時，寫一篇 ADR。
    - 開 draft PR：描述寫 `Closes #N`，加上 `enhancement` 或 `bug` label。PR 在這時候就開，裡面只有 spec 和紅燈測試，還沒有任何實作。
-   - **你的檢查點**：看 spec 的 diff，問自己「這就是我要的行為嗎？」這是整個流程裡改方向最便宜的時候，實作一行都還沒寫。
+   - 開工前，規格作者讀完 Issue，把使用者看得到、Issue 又沒說的選擇一次問你，每項附上它的建議。一次問完，你只要回一次；附建議，你只要說同意或改哪一項。
+   - draft PR 一開，審查者就先審 spec（`skills/review-pr` 的 Spec review）：規則清楚、彼此和 Issue 都不矛盾，每條規則都有真的在檢查它的測試，版本升得完整、不跟其他 PR 撞號。不跑測試、不等 CI。
+   - **你的檢查點**：讀審查者的報告和 spec 的 diff，問自己「這就是我要的行為嗎？」報告先把不清楚、矛盾和漏測的地方挑出來，你只要判斷方向。這是整個流程裡改方向最便宜的時候，實作一行都還沒寫。
    - 你同意的話，自己把那個 commit 推到 `spec/<分支名>`：規格作者準備好指令，你執行並輸入 SSH key 的密碼。這種分支只有你的帳號推得動（第 3 章），它是 spec 和驗收測試的認可版本：實作者看到它才開工，review 拿 PR 跟它比對（第 2 章第 3 點）。
-3. **實作**（實作者，照 `AGENTS.md` 的 Implementing）：`spec/<分支名>` 存在才開工。拿到的是分支、spec 的 diff 和紅燈測試，不是 Issue 的文字。commit 推到同一個分支，PR 會跟著更新。不改 spec 和驗收測試，連新增一行也不行；自己的測試放在別的目錄，不引用編號。spec 沒講到的行為分兩種：使用者或其他元件看得到的（例如除不盡的錢歸誰），先停下來在 PR 留言問規格作者，同時繼續做不受影響的部分；規格作者把 requirement 和紅燈測試補在 `spec/<分支名>` 上，實作者 merge 進來再照著做。只影響內部的細節，實作者自己決定。測試全綠後，填好 PR 其餘的段落，把 draft 改成 ready。
-4. **Review**（審查者，`skills/review-pr`）：PR 改成 ready 之後才開始，第 2 章解釋清單每一項的理由。做完把報告留言在 PR 上：改了什麼、有什麼風險、看過的 commit SHA，以及比對時用的 spec SHA；給你的是摘要、連結和合併指令。一次只讓一個 PR 走完最後這段（跟上 main、檢查、回報、merge）：每合併一個 PR，其他 PR 都會落後 main，合併前做完的 review 得在更新後的 head 上重做。其他 PR 可以繼續實作。
+3. **實作**（實作者，`skills/implement`）：`spec/<分支名>` 存在才開工。拿到的是分支、spec 的 diff 和紅燈測試，不是 Issue 的文字。commit 推到同一個分支，PR 會跟著更新。不改 spec 和驗收測試，連新增一行也不行；自己的測試放在別的目錄，不引用編號。覺得哪個測試寫錯了，在 PR 留言說明，然後繼續做不受影響的部分，不整個停下來等。spec 沒講到的行為分兩種：使用者或其他元件看得到的（例如除不盡的錢歸誰），先停下來在 PR 留言問規格作者，同時繼續做不受影響的部分；規格作者把 requirement 和紅燈測試補在 `spec/<分支名>` 上，實作者 merge 進來再照著做。只影響內部的細節，實作者自己決定。本機只跑改到的測試，完整檢查交給 CI；CI 在最後一個 commit 上全綠，才填好 PR 其餘的段落，把 draft 改成 ready。綠燈要以 CI 為準，因為本機沒跑整套（第 4 章）。
+4. **Review**（審查者，`skills/review-pr`）：PR 改成 ready 之後才開始，第 2 章解釋清單每一項的理由。做完把報告留言在 PR 上：改了什麼、有什麼風險、看過的 commit SHA，以及比對時用的 spec SHA；給你的是摘要、連結和合併指令。一次只讓一個 PR 走完最後這段（跟上 main、檢查、回報、merge）：每合併一個 PR，其他 PR 都會落後 main。更新之後不必整份重審：重跑 spec-check，再只看 PR 自己的新 commit 和合併時手改的地方（`skills/review-pr` 的 Merge 列出兩行 `git log`，第二行用 `--remerge-diff`），因為 main 帶進來的改動已經各自審過。其他 PR 可以繼續實作。
 5. **Merge**：你執行審查者準備好的指令。它只會合併審查者看過的那個 commit（第 3 章第 3 點），再刪掉 `spec/<分支名>`：它不是 PR 的分支，GitHub 不會自動刪。PR 沒合併就關掉時也要刪。
 6. **自動收尾**：因為有 `Closes #N`，Issue 自動關閉；有用 Project 的話，上面的項目會自動移到 Done。
 7. **手動驗收**：有 `(manual)` requirement 時，照追溯檢查列出的清單，在實機上驗收。沒通過就開新的 Issue。
 8. **發版**：GitHub Releases 會依 PR 的 label 分類，自動產生 release notes，你再改寫成使用者看得懂的摘要。
 
-**什麼時候用哪個 skill**：四個 skill 分兩組。同樣的時間軸也寫在 starter 的 `AGENTS.md`，因為 agent 讀不到這份 playbook。
+**什麼時候用哪個 skill**：五個 skill 分兩組。同樣的時間軸也寫在 starter 的 `AGENTS.md`，因為 agent 讀不到這份 playbook。
 
 ```text
 每個階段一次
@@ -177,8 +181,8 @@ Issue 描述「這次要做什麼」，做完就關閉。spec 描述「系統現
   階段要開始   ──→ start-phase：照 proposal 建 milestone 和 parent issues
 
 每個會改變行為的 Issue 一次
-  ① 開始處理     ──→ write-spec（規格作者）：spec + 紅燈測試 → 開 draft PR → 你同意後推 spec/<分支名>
-  ② 實作         ──→ 沒有 skill，照 AGENTS.md：推到同一個 PR，全綠後改成 ready
+  ① 開始處理     ──→ write-spec（規格作者）：spec + 紅燈測試 → 開 draft PR → 審查者先審 → 你看報告後推 spec/<分支名>
+  ② 實作         ──→ implement（實作者）：推到同一個 PR，CI 全綠後改成 ready
   ③ PR 改成 ready ──→ review-pr（審查者）：檢查 → 報告留在 PR，摘要和合併指令給你 → 你執行
 ```
 
@@ -210,7 +214,7 @@ PR 在實作之前就開，有兩個理由：spec 的 diff 就是派工單，也
 
 **AGENTS.md**：多數 coding agent 開工時會自動讀 `AGENTS.md`；Claude Code 讀的是 `CLAUDE.md`，所以 starter 在裡面只放一行 `@AGENTS.md`，讓不同工具讀到同一份。它是 agent 唯一的記憶，每次開工都要重讀一次，所以長度本身就是成本：只放規則、指令，以及事實放在哪裡，控制在一頁以內。工具能檢查的，就不寫進來。
 
-**skills/**：只在某個時刻用得到的步驟，放在 repo 根目錄的 `skills/`，一個 skill 一個資料夾，裡面是一個照 Agent Skills 標準寫的 `SKILL.md`。starter 附了四個：`record-plan`（記錄規劃）、`start-phase`（開始一個階段）、`write-spec`（寫 spec）、`review-pr`（review 和 merge）。各家工具讀 skill 的資料夾不同，例如 Claude Code 讀 `.claude/skills/`、Codex 讀 `.agents/skills/`；用哪個工具，就把 `skills/` symlink 到它讀的位置。
+**skills/**：只在某個時刻用得到的步驟，放在 repo 根目錄的 `skills/`，一個 skill 一個資料夾，裡面是一個照 Agent Skills 標準寫的 `SKILL.md`。starter 附了五個：`record-plan`（記錄規劃）、`start-phase`（開始一個階段）、`write-spec`（寫 spec）、`implement`（實作）、`review-pr`（review 和 merge）。各家工具讀 skill 的資料夾不同，例如 Claude Code 讀 `.claude/skills/`、Codex 讀 `.agents/skills/`；用哪個工具，就把 `skills/` symlink 到它讀的位置。
 
 **Roadmap**：`docs/roadmap.md` 是方向的索引，格式是 Now / Next / Later / Not doing。每個階段只寫一行：為什麼放在這個位置，加上連結。
 - **Now 連到 milestone 和 proposal。** 一個階段一個 milestone，可以設截止日期、在裡面拖拉排序；大功能用 parent issue 加 sub-issues。milestone 的描述寫這個階段的**驗證問題**：做完之後要回答什麼，才決定要不要往下走。功能層的「怎樣算完成」，寫在各個 Issue 的驗收條件。
@@ -276,7 +280,7 @@ Next 和 Later 的階段不開 Issue，談好的細節留在 proposal。某個�
 
 **預設答案**：
 
-**1. 一個檢查指令。** [`scripts/check.sh`](starter/scripts/check.sh) 跑 lint、格式檢查、型別檢查和測試，最後跑需求追溯（第 2 點）。前面任何一步失敗，追溯檢查照樣會跑：紅燈階段測試本來就會失敗，這時正需要它的報告。測試結果輸出成 JUnit XML，放到 `reports/junit/`。CI 和 agent 跑的是同一個指令。
+**1. 一個檢查指令。** [`scripts/check.sh`](starter/scripts/check.sh) 跑 lint、格式檢查、型別檢查和測試，最後跑需求追溯（第 2 點）。前面任何一步失敗，追溯檢查照樣會跑：紅燈階段測試本來就會失敗，這時正需要它的報告。測試結果輸出成 JUnit XML，放到 `reports/junit/`。CI 每次都跑這個指令；agent 在本機只跑 lint、格式檢查、型別檢查和新增或改過的測試，完整的一次交給 CI。整套測試在本機很慢，好幾個 session 共用一台機器時還會互相拖慢（第 1 章），而且最後算數的本來就是 CI 綁在 commit 上的結果（第 4 章）。
 
 **2. 需求追溯。** [`scripts/trace_check.py`](starter/scripts/trace_check.py) 比對 spec 裡的編號，以及「跑過而且通過的測試」引用的編號：
 
@@ -407,7 +411,7 @@ review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 比對 `d
 - **有第二個人類加入**：在 `main-integrity` 打開 1 人 approval 和 Require approval of the most recent reviewable push，並加上 CODEOWNERS。
 - **repo 在 organization 底下**：可以改用 branch protection 的 Restrict who can push，也可以給 bot 用 fine-grained token。
 - **發現 ruleset 被改過**（例如 agent 用你的管理員帳號放寬規則，讓卡住的 merge 通過）：讓 `setup-github.sh --check` 逐項比對 JSON 裡寫的欄位，GitHub 自己多出的欄位不算；並定好什麼時候跑它，例如每次發版前。
-- **public repo、依賴很多**：加上 Dependabot（至少要更新 GitHub Actions），actions 改用 commit SHA 固定版本。
+- **public repo、依賴很多**：加上 Dependabot（至少要更新 GitHub Actions），actions 改用 commit SHA 固定版本。Dependabot 的 PR 怎麼審，寫在 `skills/review-pr` 的 Dependabot's PRs：只用 `@dependabot rebase` 更新，因為別人推到它的分支後，它就不再更新那個 PR。
 
 ---
 
@@ -430,6 +434,9 @@ review 時用 [`scripts/spec-check.sh`](starter/scripts/spec-check.sh) 比對 `d
 | spec 和驗收測試符合認可版本 | PR 描述寫的，任何人都改得到 | `scripts/spec-check.sh` 比對 PR head 與 main 合入 `spec/<分支名>` 的結果；那個分支只有你的帳號推得動。它只證明受保護路徑的內容一致，測試合不合理仍要 review |
 | 引用的程式碼 | 指向分支的連結：分支更新後，內容就變了 | 固定在 commit 上的永久連結：`gh browse <path>:<line> --commit <sha> --no-browser` |
 | 手動驗收做過了 | agent 說它驗過 | 你親自做的 |
+| 這項檢查可以跳過 | agent 自己判斷不需要 | 你的決定，PR 的 Verification 寫明是誰、哪一天決定的 |
+
+PR 模板的 Verification 最後一定要列出「沒驗證的項目」，沒有也寫「無」。agent 不會主動說它沒做什麼，沒寫出來的項目，讀的人很容易當成做過了；寫明誰決定跳過、哪一天，日後才查得到這個缺口是誰接受的，而不是被默默漏掉。
 
 **模板**：沒有獨立的檔案。第 2、3 章的機制就是答案。
 
